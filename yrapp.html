@@ -103,6 +103,7 @@ p {
 #about {background-color: gray;}
 #measure {background-color: green;}
 #settings {background-color: blue;}
+#control {background-color: gray;}
 
 </style>
 
@@ -114,6 +115,15 @@ p {
     <!-- kancing -->
     <td class='noborder' style='width:15%;' id='kancing'>
         <table class='noborder'>
+            
+            <tr><td class='noborder' style='padding:10px;'>
+                <button class="tablink" 
+                    onclick="openPage('control', this, 'blue')" 
+                    id="controlTab">
+                    CONTROL
+                </button>
+            </td></tr>
+            
             <tr><td class='noborder' style='padding:10px;'>
                 <button class="tablink" 
                     onclick="openPage('measure', this, 'blue')" 
@@ -121,6 +131,7 @@ p {
                     MEASURE
                 </button>
             </td></tr>
+            
             <tr><td class='noborder' style='padding:10px;'>
                 <button class="tablink" 
                     onclick="openPage('settings', this, 'red')" 
@@ -128,6 +139,7 @@ p {
                     SETTINGS
                 </button>
             </td></tr>
+            
             <tr><td class='noborder' style='padding:10px;'>
                 <button class="tablink" 
                     onclick="openPage('about', this, 'green')" 
@@ -135,11 +147,54 @@ p {
                     HELP
                 </button>
             </td></tr>
+        
         </table>
     </td>
     <td class='noborder' style='width:80%;' id='layar'>
-        
-        <!-- MAIN TAB -->
+      
+      <!-- CONTROL TAB -->
+        <div id="control" class="tabcontent">
+            <table>
+                <tr><td class='noborder' id='buttonfield'>
+                <div style='width:100%;margin:auto;'>                
+                
+                    <button id='statusbtn' class='cmdbtn' 
+                        style='background-color: green;padding:20px 10px;'
+                        onclick='getstatus()'>
+                        STATUS
+                    </button>
+                    
+                    <button id='runbtn' class='cmdbtn' 
+                        style='background-color: green;padding:20px 10px;' 
+                        onclick='togglerun()'>
+                        START
+                    </button>
+                    
+                    <button id='byebtn' class='cmdbtn' 
+                        style='background-color: red;padding:20px 10px;'
+                        onclick='shutdown()'>
+                        SHUTDOWN
+                    </button>
+                
+                </div>
+                </td></tr>
+            </table>
+            
+            <div id='statustext' 
+            style="
+                width:80%;height:30%;
+                line-height:1em;
+                overflow:auto;
+                padding:5px;
+                background-color:lightgray;
+                color:red;
+                margin-top: 20px">
+                --OK-- 
+            </div>
+            
+        </div>
+   
+        <!-- PLOT TAB -->
         <div id="measure" class="tabcontent">
             <table>
                 <tr><td class='noborder' style='padding:10px;'>
@@ -155,7 +210,7 @@ p {
         </div>
         
         
-        <!-- CONFIGURATION -->
+        <!-- CONFIGURATION TAB -->
         <div id="settings" class="tabcontent">
             <div style='border: 1px solid white;padding:10px;'>
             <h3 align='center'>Device Configurations</h3>
@@ -247,7 +302,7 @@ p {
             </div>
         </div>
         
-        <!-- INFORMATION -->
+        <!-- INFORMATION TAB -->
         <div id="about" class="tabcontent">
             <h2> Some information goes here </h2>
         </div>
@@ -293,7 +348,7 @@ input.addEventListener("keyup", function(event) {
   }
 });
 
-document.getElementById("measureTab").click();
+document.getElementById("controlTab").click();
 
 </script>
 

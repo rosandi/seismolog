@@ -41,10 +41,6 @@ var layout = {
 var plotdata=[pline[0]];
 Plotly.newPlot('plotarea',plotdata,layout);
 
-$.get('dt/1',function(resp){console.log(resp)});
-$.get('avg/10',function(resp){console.log(resp)});
-
-
 function getval(elid) {
     return document.getElementById(elid).value;
 }
@@ -53,57 +49,49 @@ function setval(elid,val) {
     document.getElementById(elid).value=val;
 }
 
-function measure() {
-    $.getJSON('isbusy',function(chkdat) {
-        if(chkdat.status=='ready') {
-            $.getJSON('msr/'+msrlen,function(data) {
-                ln=data.lenght;
-                nch=data.channels;
-                dt=nch*data.msrtime/ln/1000.0; // time in mSec
-                
-                for(i=0;i<nch;i++) {
-                    pline[i].x=[];
-                    pline[i].y=[];
-                }
-                
-                var k=0;
-                for(i=0;i<ln;i++) {
-                    for(j=0;j<nch;j++) {
-                        pline[j].x.push(i*dt);
-                        pline[j].y.push(data.x[k++]);                        
-                    }
-                }
-                
-                plotdata=[]
-                for(i=0;i<nch;i++) plotdata.push(pline[i]);
-                layout.xaxis= {range:[0,data.msrtime/1000.0], title: 'time (mSec)'}
-                Plotly.newPlot('plotarea',plotdata,layout);
-            })
+function getstatus() {
+    $.getJSON('status', function(stat) {
+        if(stat.status) {
+            $('#statustext').html('Logging daemon is running<br>');
+        } else {
+            $('#statustext').html('Logging daemon is not running<br>');
         }
     });
 }
 
+function shutdown() {
+    $("#statustext").append("system shutdown<br><H1>GOODBYE...</H1>");
+    $.getJSON("shutdown",function(st){});
+}
+
 function togglerun() {
-    if(!running) {
-      runid=setInterval(measure,500); /* slowdown, don't be too aggresive */
-      running=true;
-      $('#togglebtn').css({'background-color':'green'});
-    }
-    else {
-        clearInterval(runid);
-        running=false;
-        $('#togglebtn').css({'background-color':'#555'});
-
-    }
+    $.getJSON('status',
+    function(stat){
+        console.log('stat: '+stat.status)
+        if(stat.status) {
+            $.getJSON('stop',function(s){
+                console.log('stopping');
+                $('#runbtn').css({'background-color':'green'});
+                $('#runbtn').html('START');
+                var d=new Date();
+                sdate='stop: '+d.getDate()+'/'+d.getMonth()+'/'+d.getFullYear();
+                sdate+=' '+d.getHours()+':'+d.getMinutes()+':'+d.getSeconds()+'<br>';
+                $('#statustext').append(sdate)
+            });
+        } else {
+            $.getJSON('start',function(s){
+                console.log('starting');
+                $('#runbtn').css({'background-color':'red'});
+                $('#runbtn').html('STOP');
+                var d=new Date();
+                sdate='start logging at: '+d.getDate()+'/'+d.getMonth()+'/'+d.getFullYear();
+                sdate+=' '+d.getHours()+':'+d.getMinutes()+':'+d.getSeconds()+'<br>';
+                $('#statustext').append(sdate)
+            });
+        }
+    });
 }
 
-nping=0;
-function ping() {
-    cmd='ping/'+nping++;
-    $.getJSON(cmd,function(data){
-        setval("responsetext",data.msg);
-    }); 
-}
 
 function sendcmd() {
     cmd=getval('cmdtext').replace(/ /g,'/');
@@ -129,7 +117,8 @@ function apply() {
         document.getElementById('ch1').checked=true;
     }
     
-    $.getJSON('avg/'+avg,function(resp){
+    /*
+     * $.getJSON('avg/'+avg,function(resp){
         s='data length/block: '+msrlen+'<br>';
         s+=resp.msg+'<br>';
         console.log(resp.msg);
@@ -143,7 +132,7 @@ function apply() {
         console.log(resp.msg);
         $('#longresponse').html(s);
     });
-    
+    */
 }
 
-measure()
+//measure()

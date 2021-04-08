@@ -1,22 +1,20 @@
 #!/usr/bin/python3
 
 from http.server import BaseHTTPRequestHandler,HTTPServer
-import serial
-import re
 import sys
 import os
+import json
 
 from subprocess import check_output as cmd
 from time import sleep,time
-from threading import Thread, Event
-from queue import Queue
 
 sleeplength=0.01
-host="localhost"
-port=8080
+host=''
+port=8000
 app='yrapp.html'
 datapath='.'
-mainprog='./seismolog'
+progpath='./'
+mainprog='seismolog'
 
 for arg in sys.argv:
     if arg.find('host=') == 0:
@@ -24,8 +22,18 @@ for arg in sys.argv:
     if arg.find('port=') == 0:
         port=arg.replace('port=','')
 
-
 busy=False
+
+def checkstatus():
+        st=False
+        cout=cmd(['ps', '-e']).decode('ascii').split('\n')
+        
+        for c in cout:
+            if c.find('seismolog') > 0:
+                st=True
+                break
+
+        return st
 
 class OtherApiHandler(BaseHTTPRequestHandler):
    
@@ -34,14 +42,6 @@ class OtherApiHandler(BaseHTTPRequestHandler):
         self.send_header('Content-type',mime)
         self.end_headers()
     
-    def checkstatus():
-            status='inactive'
-            cout=cmd(['ps', '-e'].decode('ascii').split('\n')
-            for c in cout:
-                if c.find('seismolog') > 0:
-                    status='active'
-                    break
-            return status
     
     def do_GET(self):
         acmd=self.requestline.split()
@@ -79,37 +79,46 @@ class OtherApiHandler(BaseHTTPRequestHandler):
             except:
                 self.wfile.write(bytes("/* file not found {} */".format(htfile),'ascii'))
                 
-        elif htfile == 'status':                    
-            self.wfile.write(bytes(self.checkstatus(),'utf-8'))
+        elif htfile == 'status':
+            s=json.dumps({'status':checkstatus()})
+            self.header('text/json')
+            self.wfile.write(bytes(s,'utf-8'))
         
         elif htfile == 'start':
-            if checkstatus() == 'inactive':
-                os.system(['nohup {} 2>/dev/null &'.format(prog)])
+            prg=progpath+mainprog
+            if not checkstatus():
+                ret=os.system('nohup {} 2>/dev/null &'.format(prg))
+                print('running logging daemon {}: {}'.format(prg,ret))
+                
+            s=json.dumps({'status':checkstatus()})
+            self.header('text/json')
+            self.wfile.write(bytes(s,'utf-8'))
         
         elif htfile == 'stop':
-            if checkstatus() == 'active':
-                os.system('killall {}'.format(prog))
-            
+            if checkstatus():
+                os.system('killall '+mainprog)
+                print('killing logging daemon')
+                
+            s=json.dumps({'status':checkstatus()})
+            self.header('text/json')
+            self.wfile.write(bytes(s,'utf-8'))
+                 
         elif htfile == 'list':
             datafiles=[]
             for df in os.listdir(datapath):
                 if df.rfind('.json') > 0:
                     datafiles.append(df)
-            htext='{ "datafiles":{0} }'.format(datafiles)
-            self.wfile.write(bytes(htext),'utf-8')
+            
+            datafiles=json.dumps({'files':datafiles})
+            self.header('text/json')
+            self.wfile.write(bytes(datafiles),'utf-8')
         
         elif htfile == 'shutdown':
+            self.header('text/plain')
+            self.wfile.write(bytes('system shutdown','utf-8'))
             os.system('sudo poweroff &')
-        
 
 ################ MAIN PROGRAM ###############
-
-try:
-    deviceInit(comm,speed)
-except:
-    print('server failed to run')
-    print('bye...')
-    exit(-1) 
 
 print("serving on %s:%s"%(host,port))
 
@@ -119,5 +128,4 @@ try:
         
 except KeyboardInterrupt:
     print("\nterminating server")
-    deviceClose()
     print("bye...")

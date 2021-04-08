@@ -91,7 +91,6 @@ def directMeasure(n=1):
 def clearQueue():
     pass
 
-
 def deviceClose():
     pass
 
@@ -104,7 +103,7 @@ if __name__ == "__main__":
     import numpy as np
     
     blocklen=100
-        
+    
     filename=time.strftime('%Y%m%d%H%M%S')+'.json'
     
     for arg in sys.argv:
@@ -118,12 +117,15 @@ if __name__ == "__main__":
     
     tstart=time.time()
 
-    chn=1+2+4    
+    chn=1+2+4
     t,d=readadc(blocklen,chn)
     d=np.array(d).reshape((3,blocklen),order='F')
     d=d.tolist()
     
-    dat={'tsample':t, 'tstart':tstart, 'x':d[0], 'y':d[1], 'z':d[2]}
+    dat={
+        'tsample':t, 'tstart':tstart, 'length': blocklen, 
+        'x':d[0], 'y':d[1], 'z':d[2]
+        }
     
     f=open(filename, 'w')
     json.dump(dat,f)
