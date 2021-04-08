@@ -9,6 +9,7 @@ gain=16
 devchan=4
 adc=None
 trigpin=None
+rate=None
 
 def channelnum(cmask=None,nchannel=None):
     global chn
@@ -29,9 +30,10 @@ def channelnum(cmask=None,nchannel=None):
 
     return nch,chlst
 
-def deviceInit(port='ADS1115',speed=None):
-    global adc,trigpin
+def deviceInit(port='ADS1115',speed=860):
+    global adc,trigpin,rate
     
+    rate=speed
     trigpin=Button(4)
     
     if port == 'ADS1115':
@@ -49,7 +51,7 @@ def readadc(n=1,channels=None, delay=0.0):
     tstart=time.time()
     for i in range(n):
         for ch in cl:
-            vals.append(adc.read_adc(ch,gain=gain))
+            vals.append(adc.read_adc(ch,gain=gain,data_rate=rate))
             time.sleep(delay)
             
     tend=time.time()
@@ -92,34 +94,33 @@ def deviceClose():
 
 if __name__ == "__main__":
    
-    from time import sleep, time
     import sys
-    import signal as sg
+    import json
+    import numpy as np
     
-    blocklen=1024
-    nb=None   
-    filename=None
-    
-    sg.signal(sg.SIGINT, termhandle)
+    blocklen=100
+    nb=None
+        
+    filename=time.strftime('%Y%m%d%H%M%S')+'.json'
     
     for arg in sys.argv:
         if arg.find('block=') == 0:
             blocklen=int(arg.replace('block=',''))
             print('block length: %d'%(blocklen), file=sys.stderr)
-        if arg.find('file=' == 0:
+        if arg.find('file=') == 0:
             filename=arg.replace('file=','')
 
     deviceInit()
     
-    tstart=time()
-    chn=1+2+4
+    tstart=time.time()
+
+    chn=1+2+4    
     t,d=readadc(blocklen,chn)
-    d=np.array(d).reshape((4,blocklen),order='F')
+    d=np.array(d).reshape((3,blocklen),order='F')
+    d=d.tolist()
+    
     dat={'tsample':t, 'tstart':tstart, 'x':d[0], 'y':d[1], 'z':d[2]}
-    if filename is None:
-        json.dump(dat)
-    else:
-        with open(filename, 'w') as f:
-            json.dump(dat,f)
+    with open(filename, 'w') as f:
+        json.dump(dat,f)
     
     deviceClose()
