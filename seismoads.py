@@ -59,7 +59,7 @@ def readadc(n=1,channels=None, delay=0.0):
     return tend-tstart,vals
 
 def deviceCommand(scmd):
-    global chn
+    global chn,gain
     
     nchan,chlist=channelnum(chn)
     
@@ -77,6 +77,11 @@ def deviceCommand(scmd):
         chn=int(scmd.split()[1])
         nchan,_=channelnum(chn)
         return "channel mask: {} number {}".format(chn,nchan)
+    
+    elif scmd.find('gain')==0:
+        gain=int(scmd.split()[1])
+        return "gain %d"%(gain)
+
     else:
         return "ADS1x15 interface"
     
@@ -99,7 +104,6 @@ if __name__ == "__main__":
     import numpy as np
     
     blocklen=100
-    nb=None
         
     filename=time.strftime('%Y%m%d%H%M%S')+'.json'
     
@@ -120,7 +124,9 @@ if __name__ == "__main__":
     d=d.tolist()
     
     dat={'tsample':t, 'tstart':tstart, 'x':d[0], 'y':d[1], 'z':d[2]}
-    with open(filename, 'w') as f:
-        json.dump(dat,f)
+    
+    f=open(filename, 'w')
+    json.dump(dat,f)
+    f.close()
     
     deviceClose()
