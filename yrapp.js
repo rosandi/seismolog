@@ -18,7 +18,7 @@ var pline = [{x: [0],y: [0],type: 'scatter',name: 'V1'},
              {x: [0],y: [0],type: 'scatter',name: 'V3'},
              ];
 
-plotwidth=0.65*ww;
+plotwidth=0.60*ww;
 plotheight=0.3*wh;
 
 var layout = {
@@ -107,7 +107,7 @@ function listFiles(){
 }
 
 function plotfile(fname) {
-    if(fname=='--' || fname=='') return;
+    if(fname=='--' || fname=='' || fname=='null') return;
     $.getJSON('load/'+fname, function(data){
         t=new Array(data.length);
         dt=data.tsample/data.length;

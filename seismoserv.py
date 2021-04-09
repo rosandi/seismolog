@@ -118,11 +118,15 @@ class OtherApiHandler(BaseHTTPRequestHandler):
         
         elif htfile.find('load')==0:
             fname=htfile.replace('load ','')
-            fl=open(fname)
-            data=json.load(fl)
-            fl.close()
-            self.header('text/json')
-            self.wfile.write(bytes(json.dumps(data),'utf-8'))            
+            try:
+                fl=open(fname)
+                data=json.load(fl)
+                fl.close()
+                self.header('text/json')
+                self.wfile.write(bytes(json.dumps(data),'utf-8'))           
+            except:
+                self.header('text/json')
+                self.wfile.write(bytes('--','utf-8'))   
             
         elif htfile == 'shutdown':
             self.header('text/plain')
