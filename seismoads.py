@@ -103,6 +103,8 @@ if __name__ == "__main__":
     import numpy as np
     
     blocklen=100
+    dly=0
+    avg=1 # oversampling average
     
     filename=time.strftime('%Y%m%d%H%M%S')+'.json'
     
@@ -112,15 +114,27 @@ if __name__ == "__main__":
             print('block length: %d'%(blocklen), file=sys.stderr)
         if arg.find('file=') == 0:
             filename=arg.replace('file=','')
+        if arg.find('gain=') == 0:
+            gain=int(arg.replace('gain=',''))
+        if arg.find('chanmask=') == 0:
+            chn=int(arg.replace('chanmask=',''))
+        if arg.find('delay=') == 0:
+            dly=float(arg.replace('delay=',''))
+        if arg.find('avg=') == 0:
+            avg=int(arg.replace('avg=',''))
 
     deviceInit()
     
     tstart=time.time()
 
     chn=1+2+4
-    t,d=readadc(blocklen,chn)
-    d=np.array(d).reshape((3,blocklen),order='F')
-    d=d.tolist()
+    ad=np.zeros(blocklen*3)
+    for a in range(avg):
+        t,d=readadc(blocklen,chn,dly)
+        ad+=np.array(d)
+    
+    ad=(ad/avg).reshape((3,blocklen),order='F')
+    d=ad.tolist()
     
     dat={
         'tsample':t, 'tstart':tstart, 'length': blocklen, 

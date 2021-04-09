@@ -16,12 +16,10 @@ var chn=1;
 var pline = [{x: [0],y: [0],type: 'scatter',name: 'V1'}, 
              {x: [0],y: [0],type: 'scatter',name: 'V2'},
              {x: [0],y: [0],type: 'scatter',name: 'V3'},
-             {x: [0],y: [0],type: 'scatter',name: 'V4'},
-             {x: [0],y: [0],type: 'scatter',name: 'V5'},
-             {x: [0],y: [0],type: 'scatter',name: 'V6'}];
+             ];
 
-plotwidth=0.72*ww;
-plotheight=0.8*wh;
+plotwidth=0.65*ww;
+plotheight=0.3*wh;
 
 var layout = {
   width: plotwidth,
@@ -34,12 +32,17 @@ var layout = {
     t: 40,
     pad: 4
   },
-  yaxis: {range: [-0.1, 0.1],title: 'volt'},
+  yaxis: {range: [-1, 1],title: 'volt'},
   xaxis: {title: 'time'}
 };
 
-var plotdata=[pline[0]];
-Plotly.newPlot('plotarea',plotdata,layout);
+var plotdatax=[pline[0]];
+var plotdatay=[pline[1]];
+var plotdataz=[pline[2]];
+
+Plotly.newPlot('plotareax',plotdatax,layout);
+Plotly.newPlot('plotareay',plotdatay,layout);
+Plotly.newPlot('plotareaz',plotdataz,layout);
 
 function getval(elid) {
     return document.getElementById(elid).value;
@@ -52,9 +55,9 @@ function setval(elid,val) {
 function getstatus() {
     $.getJSON('status', function(stat) {
         if(stat.status) {
-            $('#statustext').html('Logging daemon is running<br>');
+            $('#statustext').append('Logging daemon is running<br>');
         } else {
-            $('#statustext').html('Logging daemon is not running<br>');
+            $('#statustext').append('Logging daemon is not running<br>');
         }
     });
 }
@@ -86,18 +89,53 @@ function togglerun() {
                 var d=new Date();
                 sdate='start logging at: '+d.getDate()+'/'+d.getMonth()+'/'+d.getFullYear();
                 sdate+=' '+d.getHours()+':'+d.getMinutes()+':'+d.getSeconds()+'<br>';
-                $('#statustext').append(sdate)
+                $('#statustext').append(sdate);
+                $('#statustext').append(s.program+'<br>');
             });
         }
     });
 }
 
+function listFiles(){
+    $.getJSON('list',function(lst) {
+        s='';
+        for(i=0;i<lst.files.length;i++) {
+            s+='<option '+'value="'+lst.files[i]+'">'+lst.files[i]+'</option>';
+        }
+        $('#filelist').html(s);
+    });
+}
+
+function plotfile(fname) {
+    if(fname=='--' || fname=='') return;
+    $.getJSON('load/'+fname, function(data){
+        t=new Array(data.length);
+        dt=data.tsample/data.length;
+        for (i=0;i<data.length;i++) {
+            t[i]=i*dt;
+        }
+        
+        layout.xaxis={range: [0,data.tsample],title: 'time'};
+        layout.yaxis={range: [-200, 200],title: 'volt'};
+        
+        pline[0].x=t;
+        pline[1].x=t;
+        pline[2].x=t;
+        
+        pline[0].y=data.x;
+        pline[1].y=data.y;
+        pline[2].y=data.z;
+        Plotly.redraw('plotareax');
+        Plotly.redraw('plotareay');
+        Plotly.redraw('plotareaz');
+    });
+}
 
 function sendcmd() {
     cmd=getval('cmdtext').replace(/ /g,'/');
     console.log(cmd);
     $.get(cmd,function(data){
-        $('#longresponse').html(data.replace(/,/g,',<br>'));
+        $('#longresponse').append(data+'<br>');
     });
 }
 
@@ -109,30 +147,14 @@ function apply() {
     if(document.getElementById('ch1').checked) chn+=1;
     if(document.getElementById('ch2').checked) chn+=2;
     if(document.getElementById('ch3').checked) chn+=4;
-    if(document.getElementById('ch4').checked) chn+=8;
-    if(document.getElementById('ch5').checked) chn+=16;
-    if(document.getElementById('ch6').checked) chn+=32;
+
     if(chn==0) {
         chn=1; // avoids nonsense
         document.getElementById('ch1').checked=true;
     }
     
-    /*
-     * $.getJSON('avg/'+avg,function(resp){
-        s='data length/block: '+msrlen+'<br>';
-        s+=resp.msg+'<br>';
-        console.log(resp.msg);
+    sconf='par/chanmask='+chn+':block='+msrlen+':avg='+avg+':delay='+dt+'/';
+    $.get(sconf,function(resp){
+        $('#longresponse').append(resp+'<br>');
     });
-    $.getJSON('dt/'+dt,function(resp){
-        s+=resp.msg+'<br>';
-        console.log(resp.msg);
-    });
-    $.getJSON('chn/'+chn,function(resp){
-        s+=resp.msg;
-        console.log(resp.msg);
-        $('#longresponse').html(s);
-    });
-    */
 }
-
-//measure()

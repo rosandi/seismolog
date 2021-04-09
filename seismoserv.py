@@ -14,6 +14,7 @@ port=8000
 app='yrapp.html'
 datapath='.'
 progpath='./'
+progparam='chanmask=7:blocklen=2048:avg=1:delay=0'
 mainprog='seismolog'
 
 for arg in sys.argv:
@@ -44,6 +45,8 @@ class OtherApiHandler(BaseHTTPRequestHandler):
     
     
     def do_GET(self):
+        global progparam
+        
         acmd=self.requestline.split()
         print('Get request received',acmd)
         
@@ -58,7 +61,7 @@ class OtherApiHandler(BaseHTTPRequestHandler):
             htcontent=appfile.read()
             appfile.close()
             self.wfile.write(bytes(htcontent,'utf-8'))
-            print('sent app.html')
+            print('sent: ', app)
             
         elif htfile == 'favicon.ico':
             self.header('image/x-icon')
@@ -85,12 +88,12 @@ class OtherApiHandler(BaseHTTPRequestHandler):
             self.wfile.write(bytes(s,'utf-8'))
         
         elif htfile == 'start':
-            prg=progpath+mainprog
+            prg=progpath+mainprog+' '+progparam.replace(':',' ')
             if not checkstatus():
                 ret=os.system('nohup {} 2>/dev/null &'.format(prg))
-                print('running logging daemon {}: {}'.format(prg,ret))
+                print('running logging daemon ',prg)
                 
-            s=json.dumps({'status':checkstatus()})
+            s=json.dumps({'status':checkstatus(),'program':prg})
             self.header('text/json')
             self.wfile.write(bytes(s,'utf-8'))
         
@@ -111,12 +114,34 @@ class OtherApiHandler(BaseHTTPRequestHandler):
             
             datafiles=json.dumps({'files':datafiles})
             self.header('text/json')
-            self.wfile.write(bytes(datafiles),'utf-8')
+            self.wfile.write(bytes(datafiles,'utf-8'))
         
+        elif htfile.find('load')==0:
+            fname=htfile.replace('load ','')
+            fl=open(fname)
+            data=json.load(fl)
+            fl.close()
+            self.header('text/json')
+            self.wfile.write(bytes(json.dumps(data),'utf-8'))            
+            
         elif htfile == 'shutdown':
             self.header('text/plain')
             self.wfile.write(bytes('system shutdown','utf-8'))
+            sleep(5)
             os.system('sudo poweroff &')
+            
+        elif htfile.find('par') == 0:
+            progparam=htfile.replace('par ','')
+            print('parameter request: '+progparam)
+            s='Logging parameters:<br>'+progparam
+            self.header('text/plain')
+            self.wfile.write(bytes(s,'utf-8'))
+        
+        else:
+            print('unimplemented request: ',htfile)
+            self.header('text/plain')
+            self.wfile.write(bytes('unimplemented request: '+htfile,'utf-8'))
+            
 
 ################ MAIN PROGRAM ###############
 

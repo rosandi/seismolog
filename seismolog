@@ -3,5 +3,5 @@
 while true; do
   diskuse=$(df | awk '/^\/dev\/root/{print $5}' | sed 's/%//')
   [[ $diskuse -gt 80 ]] && exit
-  ./seismoads.py block=1024
+  ./seismoads.py $@
 done

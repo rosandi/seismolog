@@ -72,6 +72,14 @@ body, html {
   vertical-align:top;
 }
 
+.textlist {
+  line-height:1em;
+  overflow:auto;
+  padding:5px;
+  background-color:lightgray;
+  color:red;
+}
+
 table {
   font-family: arial, sans-serif;
   border-collapse: collapse;
@@ -101,7 +109,7 @@ p {
 }
 
 #about {background-color: gray;}
-#measure {background-color: green;}
+#dataplot {background-color: green;}
 #settings {background-color: blue;}
 #control {background-color: gray;}
 
@@ -126,9 +134,9 @@ p {
             
             <tr><td class='noborder' style='padding:10px;'>
                 <button class="tablink" 
-                    onclick="openPage('measure', this, 'blue')" 
-                    id="measureTab">
-                    MEASURE
+                    onclick="openPage('dataplot', this, 'blue');listFiles()" 
+                    id="plotTab">
+                    DATA FILES
                 </button>
             </td></tr>
             
@@ -180,37 +188,45 @@ p {
                 </td></tr>
             </table>
             
-            <div id='statustext' 
-            style="
-                width:80%;height:30%;
-                line-height:1em;
-                overflow:auto;
-                padding:5px;
-                background-color:lightgray;
-                color:red;
-                margin-top: 20px">
-                --OK-- 
+            <div id='statustext' class='textlist' 
+            style='width:100%;height:30%;margin-top: 20px'>
+                --OK--<br> 
             </div>
-            
+            <button id='statclr' class='cmdbtn' 
+                style='margin-top: 5px'
+                onclick='$("#statustext").html("")'>
+                clear
+            </button>
+
         </div>
    
         <!-- PLOT TAB -->
-        <div id="measure" class="tabcontent">
+        <div id="dataplot" class="tabcontent">
             <table>
-                <tr><td class='noborder' style='padding:10px;'>
-                    <div id='plotarea'></div>
+                <tr><td class='noborder' style='width:65%;text-align:center;'>
+                    <table>
+                    <tr><td class='noborder'>
+                        <div id='plotareax'></div>
+                    </td></tr>
+                    <tr><td class='noborder' >
+                        <div id='plotareay'></div>
+                    </td></tr>
+                    <tr><td class='noborder' >
+                        <div id='plotareaz'></div>
+                    </td></tr>
+                    </table>
+                </td><td class='noborder'>
+                    <select name="data log" id='filelist' size=20
+                    class='textlist'
+                    onclick='plotfile($(this).val())'>
+                    <option>--</option>
+                    </select>
                 </td></tr>
-                <tr><td class='noborder' id='buttonfield'>
-                <div style='width:100%;margin:auto;'>                
-                  <button id='measurebtn' class='cmdbtn' onclick='measure()'>MEASURE</button>
-                  <button id='togglebtn' class='cmdbtn' onclick='togglerun()'>RUN/PAUSE</button>
-                </div>
-                </td></tr>
-            </table>
+             </table>
         </div>
         
         
-        <!-- CONFIGURATION TAB -->
+        <!-- SETTING TAB -->
         <div id="settings" class="tabcontent">
             <div style='border: 1px solid white;padding:10px;'>
             <h3 align='center'>Device Configurations</h3>
@@ -223,35 +239,32 @@ p {
                     <td class='noborder'>sample length</td>
                     <td class='noborder'>
                         <input id="len" class='rangeinput'
-                        type='range' min="20" max="200" step="10" value="100" 
+                        type='range' min="256" max="65536" step="256" value="2048" 
                         oninput="rangechg(this.value,'v_len');">
                     </td>
-                    <td class='vdisplay' id='v_len'>100</td>
+                    <td class='vdisplay' id='v_len'>2048</td>
                 </tr><tr>
-                    <td class='noborder'>average number</td>
+                    <td class='noborder'>over-sampling</td>
                     <td class='noborder'>
                         <input id="avg" class='rangeinput'
-                        type='range' min="1" max="50" step="1" value="10" 
+                        type='range' min="1" max="100" step="1" value="1" 
                         oninput="rangechg(this.value,'v_avg');">
                     </td>
-                    <td class='vdisplay' id='v_avg'>10</td>
+                    <td class='vdisplay' id='v_avg'>1</td>
                 </tr><tr>    
                     <td class='noborder'>sampling delay</td>
                     <td class='noborder'>
                         <input id="dt" class='rangeinput'
-                        type='range' min="1" max="50" step="1" value="1" 
+                        type='range' min="0" max="50" step="10" value="0" 
                         oninput="rangechg(this.value,'v_dt');">
                     </td>
-                    <td class='vdisplay' id='v_dt'>1</td>
+                    <td class='vdisplay' id='v_dt'>0</td>
                 </tr><tr>
                     <td class='noborder'>channels</td>
                     <td class='noborder'>
                         <input id="ch1" type='checkbox' value="ch1" checked>C1 </input>
-                        <input id="ch2" type='checkbox' value="ch2">C2 </input>
-                        <input id="ch3" type='checkbox' value="ch3">C3 </input>
-                        <input id="ch4" type='checkbox' value="ch4">C4 </input>
-                        <input id="ch5" type='checkbox' value="ch5">C5 </input>
-                        <input id="ch6" type='checkbox' value="ch6">C6</input>
+                        <input id="ch2" type='checkbox' value="ch2" checked>C2 </input>
+                        <input id="ch3" type='checkbox' value="ch3" checked>C3 </input>
                     </td> 
                     <td class='noborder'>
                         <button id='applybtn' class='cmdbtn'style='width:90%;' onclick='apply()'>APPLY</button> 
@@ -261,21 +274,6 @@ p {
         
             </div>
             <table style='margin-top:20px;margin-bottom:20px;'>
-            <tr><td class='noborder' style='width:25%;padding:2px 0px;'>
-                
-            <!--- PING BUTTON ---->
-            <button id='pinger' class='cmdbtn'
-            style='width:90%;font-size:1.2em'
-            onclick='ping();'>PING</button>
-            </td>
-            <!-- FIXME: popup sould be better -->
-            <td class='noborder' id='devrespons' class='noborder' style='padding:2px 0px;' >
-            <input id='responsetext' type='text' 
-            style='width:100%;font-size:1em;padding:10px' value="--OK--" disabled>
-            </input>
-            </td>
-            </tr>
-            
             <!--- COMMAND BUTTON --->
             <tr><td class='noborder' style='width:25%;padding:2px 0px;'>
             <button id='sender' class='cmdbtn' 
@@ -296,9 +294,13 @@ p {
             padding:5px;
             background-color:lightgray;
             color:red;">
-                --OK-- 
+                --OK--<br>
             </div>
-
+            <button id='respclr' class='cmdbtn' 
+                style='margin-top: 5px'
+                onclick='$("#longresponse").html("")'>
+                clear
+            </button>
             </div>
         </div>
         
