@@ -106,11 +106,13 @@ class OtherApiHandler(BaseHTTPRequestHandler):
             self.header('text/json')
             self.wfile.write(bytes(s,'utf-8'))
                  
-        elif htfile == 'list':
+        elif htfile.find('list') == 0:
             datafiles=[]
+            ext='.'+htfile.split()[1]
+            print('list ext: *{}'.format(ext))
             for df in os.listdir(datapath):
-                if df.rfind('.json') > 0:
-                    datafiles.append(df)
+                if df.rfind(ext) > 0:
+                    datafiles.append(df.replace('.json',''))
             
             datafiles=json.dumps({'files':datafiles})
             self.header('text/json')

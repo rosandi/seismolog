@@ -80,6 +80,16 @@ body, html {
   color:red;
 }
 
+.cell {
+  color: red;
+  padding: 8px 8px;
+  text-align: center;
+}
+
+.cell:hover{
+      background-color: #777;
+}
+
 table {
   font-family: arial, sans-serif;
   border-collapse: collapse;
@@ -215,13 +225,15 @@ p {
                         <div id='plotareaz'></div>
                     </td></tr>
                     </table>
-                </td><td class='noborder'>
-                    <select name="data log" id='filelist' size=20
-                    class='textlist'
-                    style='width: 180px'
-                    onclick='plotfile($(this).val())'>
-                    <option>--</option>
-                    </select>
+                </td><td class='noborder' style='width: 160px;'>
+                    <div style='text-align:center;padding-bottom:20px' >LOG FILES</div>
+                    <div class='textlist' style='height: 32em;background-color:#229954'>
+                    <table id='filelist'>
+                        <tr>
+                            <td>place holder</td>
+                        </tr>
+                    </table>
+
                 </td></tr>
              </table>
         </div>

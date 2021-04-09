@@ -32,8 +32,8 @@ var layout = {
     t: 40,
     pad: 4
   },
-  yaxis: {range: [-1, 1],title: 'volt'},
-  xaxis: {title: 'time'}
+  yaxis: {range: [-1, 1],title: 'a.u.'},
+  xaxis: {title: 'time (s)'}
 };
 
 var plotdatax=[pline[0]];
@@ -63,7 +63,7 @@ function getstatus() {
 }
 
 function shutdown() {
-    $("#statustext").append("system shutdown<br><H1>GOODBYE...</H1>");
+    $("#statustext").html("<div style='text-align:center'>system shutdown...<br><H1>GOOD BYE...</H1></div>");
     $.getJSON("shutdown",function(st){});
 }
 
@@ -97,10 +97,10 @@ function togglerun() {
 }
 
 function listFiles(){
-    $.getJSON('list',function(lst) {
+    $.getJSON('list/json',function(lst) {
         s='';
         for(i=0;i<lst.files.length;i++) {
-            s+='<option '+'value="'+lst.files[i]+'">'+lst.files[i]+'</option>';
+            s+='<tr><td class="cell" onclick=plotfile($(this).html()+".json")>'+lst.files[i]+'</td></tr>';
         }
         $('#filelist').html(s);
     });
@@ -115,8 +115,8 @@ function plotfile(fname) {
             t[i]=i*dt;
         }
         
-        layout.xaxis={range: [0,data.tsample],title: 'time'};
-        layout.yaxis={range: [-200, 200],title: 'volt'};
+        layout.xaxis={range: [0,data.tsample],title: 'time (s)'};
+        layout.yaxis={range: [-200, 200],title: 'a.u.'};
         
         pline[0].x=t;
         pline[1].x=t;
