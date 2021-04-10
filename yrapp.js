@@ -100,7 +100,8 @@ function listFiles(){
     $.getJSON('list/json',function(lst) {
         s='';
         for(i=0;i<lst.files.length;i++) {
-            s+='<tr><td class="cell" onclick=plotfile($(this).html()+".json")>'+lst.files[i]+'</td></tr>';
+            fl=lst.files[i].replace(/.json/,'')
+            s+='<tr><td class="cell" onclick=plotfile($(this).html()+".json")>'+fl+'</td></tr>';
         }
         $('#filelist').html(s);
     });

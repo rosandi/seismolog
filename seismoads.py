@@ -105,9 +105,8 @@ if __name__ == "__main__":
     blocklen=100
     dly=0
     avg=1 # oversampling average
-    
-    filename=time.strftime('%Y%m%d%H%M%S')+'.json'
-    
+    datapath='.'
+        
     for arg in sys.argv:
         if arg.find('block=') == 0:
             blocklen=int(arg.replace('block=',''))
@@ -122,9 +121,11 @@ if __name__ == "__main__":
             dly=float(arg.replace('delay=',''))
         if arg.find('avg=') == 0:
             avg=int(arg.replace('avg=',''))
+        if arg.find('dir=') == 0:
+            datapath=arg.replace('dir=','')
 
+    filename=datapath+'/'+time.strftime('%Y%m%d%H%M%S')+'.json'
     deviceInit()
-    
     tstart=time.time()
 
     chn=1+2+4

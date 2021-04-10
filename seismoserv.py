@@ -12,9 +12,9 @@ sleeplength=0.01
 host=''
 port=8000
 app='yrapp.html'
-datapath='.'
+datapath='/home/pi/data'
 progpath='./'
-progparam='chanmask=7:blocklen=2048:avg=1:delay=0'
+progparam='chanmask=7:blocklen=2048:avg=1:delay=0:dir='+datapath
 mainprog='seismolog'
 
 for arg in sys.argv:
@@ -22,6 +22,14 @@ for arg in sys.argv:
         host=arg.replace('host=','')
     if arg.find('port=') == 0:
         port=arg.replace('port=','')
+    if arg.find('dir=') == 0:
+        datapath=arg.replace('dir=','')
+
+
+ret=os.system('mkdir -p {}'.format(datapath))
+
+if ret != 0:
+    exit(0)
 
 busy=False
 
@@ -112,14 +120,14 @@ class OtherApiHandler(BaseHTTPRequestHandler):
             print('list ext: *{}'.format(ext))
             for df in os.listdir(datapath):
                 if df.rfind(ext) > 0:
-                    datafiles.append(df.replace('.json',''))
+                    datafiles.append(df)
             
             datafiles=json.dumps({'files':datafiles})
             self.header('text/json')
             self.wfile.write(bytes(datafiles,'utf-8'))
         
         elif htfile.find('load')==0:
-            fname=htfile.replace('load ','')
+            fname=datapath+'/'+htfile.replace('load ','')
             try:
                 fl=open(fname)
                 data=json.load(fl)
@@ -140,6 +148,8 @@ class OtherApiHandler(BaseHTTPRequestHandler):
             progparam=htfile.replace('par ','')
             print('parameter request: '+progparam)
             s='Logging parameters:<br>'+progparam
+            if progparam.find('dir=') < 0:
+                progparam+=datapath
             self.header('text/plain')
             self.wfile.write(bytes(s,'utf-8'))
         
