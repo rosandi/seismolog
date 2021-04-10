@@ -14,7 +14,7 @@ port=8000
 app='yrapp.html'
 datapath='/home/pi/data'
 progpath='./'
-progparam='chanmask=7:blocklen=2048:avg=1:delay=0:dir='+datapath
+progparam='chanmask=7:block=2048:avg=1:delay=0:dir='+datapath
 mainprog='seismolog'
 
 for arg in sys.argv:
