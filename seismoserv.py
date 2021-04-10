@@ -149,7 +149,7 @@ class OtherApiHandler(BaseHTTPRequestHandler):
             print('parameter request: '+progparam)
             s='Logging parameters:<br>'+progparam
             if progparam.find('dir=') < 0:
-                progparam+=datapath
+                progparam+=':dir='+datapath
             self.header('text/plain')
             self.wfile.write(bytes(s,'utf-8'))
         
