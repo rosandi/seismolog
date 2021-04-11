@@ -15,13 +15,12 @@ var chn=1;
 
 var pline = [{x: [0],y: [0],type: 'scatter',name: 'V1'}, 
              {x: [0],y: [0],type: 'scatter',name: 'V2'},
-             {x: [0],y: [0],type: 'scatter',name: 'V3'},
-             ];
+             {x: [0],y: [0],type: 'scatter',name: 'V3'}];
 
-plotwidth=0.60*ww;
+plotwidth=0.55*ww;
 plotheight=0.3*wh;
 
-var layout = {
+var layoutx = {
   width: plotwidth,
   height: plotheight,
   autosize: false,
@@ -32,7 +31,37 @@ var layout = {
     t: 40,
     pad: 4
   },
-  yaxis: {range: [-1, 1],title: 'a.u.'},
+  yaxis: {range: [-200, 200],title: 'X (a.u.)'},
+  xaxis: {title: 'time (s)'}
+};
+
+var layouty = {
+  width: plotwidth,
+  height: plotheight,
+  autosize: false,
+  margin: {
+    l: 50,
+    r: 50,
+    b: 50,
+    t: 40,
+    pad: 4
+  },
+  yaxis: {range: [-200, 200],title: 'Y (a.u.)'},
+  xaxis: {title: 'time (s)'}
+};
+
+var layoutz = {
+  width: plotwidth,
+  height: plotheight,
+  autosize: false,
+  margin: {
+    l: 50,
+    r: 50,
+    b: 50,
+    t: 40,
+    pad: 4
+  },
+  yaxis: {range: [-200, 200],title: 'Z (a.u.)'},
   xaxis: {title: 'time (s)'}
 };
 
@@ -40,9 +69,9 @@ var plotdatax=[pline[0]];
 var plotdatay=[pline[1]];
 var plotdataz=[pline[2]];
 
-Plotly.newPlot('plotareax',plotdatax,layout);
-Plotly.newPlot('plotareay',plotdatay,layout);
-Plotly.newPlot('plotareaz',plotdataz,layout);
+Plotly.newPlot('plotareax',plotdatax,layoutx);
+Plotly.newPlot('plotareay',plotdatay,layouty);
+Plotly.newPlot('plotareaz',plotdataz,layoutz);
 
 function getval(elid) {
     return document.getElementById(elid).value;
@@ -116,8 +145,9 @@ function plotfile(fname) {
             t[i]=i*dt;
         }
         
-        layout.xaxis={range: [0,data.tsample],title: 'time (s)'};
-        layout.yaxis={range: [-200, 200],title: 'a.u.'};
+        layoutx.xaxis={range: [0,data.tsample],title: 'time (s)'};
+        layouty.xaxis={range: [0,data.tsample],title: 'time (s)'};
+        layoutz.xaxis={range: [0,data.tsample],title: 'time (s)'};
         
         pline[0].x=t;
         pline[1].x=t;
@@ -129,6 +159,7 @@ function plotfile(fname) {
         Plotly.redraw('plotareax');
         Plotly.redraw('plotareay');
         Plotly.redraw('plotareaz');
+        $('#display').html('FILE: '+fname.replace(/.json/,''));
     });
 }
 

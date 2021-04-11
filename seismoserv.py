@@ -121,7 +121,7 @@ class OtherApiHandler(BaseHTTPRequestHandler):
             for df in os.listdir(datapath):
                 if df.rfind(ext) > 0:
                     datafiles.append(df)
-            
+            datafiles.sort(reverse=True)
             datafiles=json.dumps({'files':datafiles})
             self.header('text/json')
             self.wfile.write(bytes(datafiles,'utf-8'))

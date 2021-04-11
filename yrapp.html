@@ -131,7 +131,7 @@ p {
 <table class='noborder' style='background-color:#1A64B7'>
 <tr>
     <!-- kancing -->
-    <td class='noborder' style='width:15%;' id='kancing'>
+    <td class='noborder' style='width:10em;' id='kancing'>
         <table class='noborder'>
             
             <tr><td class='noborder' style='padding:10px;'>
@@ -173,9 +173,9 @@ p {
         
         </table>
     </td>
-    <td class='noborder' style='width:80%;' id='layar'>
-      
-      <!-- CONTROL TAB -->
+    
+    <!-- CONTROL TAB style='width:60%;' -->
+    <td class='noborder' id='layar'>      
         <div id="control" class="tabcontent">
             <table>
                 <tr><td class='noborder' id='buttonfield'>
@@ -218,7 +218,8 @@ p {
         <!-- PLOT TAB -->
         <div id="dataplot" class="tabcontent">
             <table>
-                <tr><td class='noborder' style='width:65%;text-align:center;'>
+                <tr><td class='noborder' style='text-align:center;'>
+                    <div id='display'> FILE: -- </div>
                     <table>
                     <tr><td class='noborder'>
                         <div id='plotareax'></div>
@@ -230,14 +231,24 @@ p {
                         <div id='plotareaz'></div>
                     </td></tr>
                     </table>
-                </td><td class='noborder' style='width: 160px;'>
+                </td><td class='noborder'>
                     <div style='text-align:center;padding-bottom:20px' >LOG FILES</div>
-                    <div class='textlist' style='height: 32em;background-color:#229954'>
+                    <div class='textlist'
+                    style='margin-left:auto;margin-right:auto;
+                           width:12em;height:21em;background-color:#229954'>
+                    
                     <table id='filelist'>
                         <tr>
                             <td>place holder</td>
                         </tr>
                     </table>
+                    
+                    </div>
+                    <div style='padding-top:10px'>
+                        <button class='cmdbtn' onclick='listFiles()'>
+                            REFRESH LIST
+                        </button>
+                    </div>
 
                 </td></tr>
              </table>
