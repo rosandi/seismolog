@@ -1,2 +1,3 @@
-# Seismo logging server
-Data Acquisition Server
+# Vibration Logging Device
+
+Description goes here

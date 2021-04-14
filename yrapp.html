@@ -204,7 +204,7 @@ p {
             </table>
             
             <div id='statustext' class='textlist' 
-            style='width:100%;height:20em;margin-top: 20px'>
+            style='width:100%;height:15em;margin-top: 20px'>
                 --OK--<br> 
             </div>
             <button id='statclr' class='cmdbtn' 
@@ -257,7 +257,7 @@ p {
         
         <!-- SETTING TAB -->
         <div id="settings" class="tabcontent">
-            <div style='border: 1px solid white;padding:10px;'>
+            <div style='border: 1px solid white;padding:2px;'>
             <h3 align='center'>Device Configurations</h3>
             <table>
                 <tr>
@@ -305,7 +305,7 @@ p {
             
             
             <div id='longresponse' class='textlist' 
-                 style="width:100%;height:10em;margin-top: 20px">
+                 style="width:100%;height:8em;margin-top: 20px">
                 --OK--<br>
             </div>
             
@@ -318,9 +318,7 @@ p {
         </div>
         
         <!-- INFORMATION TAB -->
-        <div id="about" class="tabcontent">
-            <h2> Some information goes here </h2>
-        </div>
+        <div id="about" class="tabcontent"></div>
 
     </td>
 </table>
@@ -368,6 +366,10 @@ for (i = 0; i < tabcontent.length; i++) {
 }
 
 document.getElementById("controlTab").click();
+
+$.get('get/about', function(s) {
+    $('#about').html(s);
+});
 
 //getLocation();
 

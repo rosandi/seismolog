@@ -31,7 +31,7 @@ var layoutx = {
     t: 40,
     pad: 4
   },
-  yaxis: {range: [-200, 200],title: 'X (a.u.)'},
+  yaxis: {range: [-200, 200],autorange: true,title: 'X (a.u.)'},
   xaxis: {title: 'time (s)'}
 };
 
@@ -46,7 +46,7 @@ var layouty = {
     t: 40,
     pad: 4
   },
-  yaxis: {range: [-200, 200],title: 'Y (a.u.)'},
+  yaxis: {range: [-200, 200],autorange: true,title: 'Y (a.u.)'},
   xaxis: {title: 'time (s)'}
 };
 
@@ -61,7 +61,7 @@ var layoutz = {
     t: 40,
     pad: 4
   },
-  yaxis: {range: [-200, 200],title: 'Z (a.u.)'},
+  yaxis: {range: [-200, 200],autorange: true,title: 'Z (a.u.)'},
   xaxis: {title: 'time (s)'}
 };
 
@@ -210,7 +210,6 @@ function apply() {
     });
 }
 
-//$.get('fetch/settings',function(rs) {console.log('TEST'+rs);});
 // Called on load
 $.getJSON('status', function(s) {
     if(s.status) {

@@ -4,6 +4,7 @@ from http.server import BaseHTTPRequestHandler,HTTPServer
 import sys
 import os
 import json
+import markdown as md
 
 from subprocess import check_output
 from time import sleep,time
@@ -98,7 +99,15 @@ class OtherApiHandler(BaseHTTPRequestHandler):
                 print('sent script: {}'.format(htfile))
             except:
                 self.wfile.write(bytes("/* file not found {} */".format(htfile),'ascii'))
-                
+        
+        elif htfile.rfind('.png',len(htfile)-4)>0:
+            print('image:',htfile)
+            self.header('image/png')
+            imgfl=open(progpath+'/doc/'+htfile,'rb')
+            img=imgfl.read()
+            imgfl.close()
+            self.wfile.write(img)
+        
         elif htfile == 'status':
             uptime=cmd('uptime')
             disk=cmd(['df', '-h', '--output=size,used,avail,pcent', '/']).split('\n')
@@ -208,8 +217,13 @@ class OtherApiHandler(BaseHTTPRequestHandler):
                         js+=' "'+ss[0]+'":'+ss[1]
                     
                     rs='{'+js.strip().replace(' ',',').replace('"dir":','"dir":"')+'"}'
-                    print(rs) ##### DEBUG
                     self.response(rs)
+                
+                elif s.find('about') == 0:
+                    afl=open(progpath+'/doc/about-id.md','r')
+                    about=md.markdown(afl.read())
+                    afl.close()
+                    self.response(about)
                     
                 elif s.find('version') == 0:
                     self.response(version)
