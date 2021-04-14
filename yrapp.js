@@ -84,10 +84,30 @@ function setval(elid,val) {
 function getstatus() {
     $.getJSON('status', function(stat) {
         if(stat.status) {
-            $('#statustext').append('Logging daemon is running<br>');
+            $('#statustext').append('Logging daemon is <strong>running</strong><br>');
         } else {
-            $('#statustext').append('Logging daemon is not running<br>');
+            $('#statustext').append('Logging daemon is <strong>not running</strong><br>');
         }
+        console.log(stat)
+        ss='Uptime: '+stat.uptime+'<br>Storage:<br>'
+        sh=stat.disk[0].replace(/\s+/g, ' ').trim().split(' ');
+        sc=stat.disk[1].replace(/\s+/g, ' ').trim().split(' ');
+        dtab='<table style="width:13em"><tr><th class="noborder">'+sh[0]+
+              '</th><th class="noborder">'+sh[1]+
+             '</th><th class="noborder">'+sh[2]+
+             '</th><th class="noborder">'+sh[3]+
+             '</th></tr>';
+
+        dtab+='<tr><td class="noborder">'+sc[0]+
+              '</td><td class="noborder">'+sc[1]+
+              '</td><td class="noborder">'+sc[2]+
+              '</td><td class="noborder">'+sc[3]+
+              '</td></tr></table>';
+        
+        $('#statustext').append(ss+dtab);
+        $.getJSON('list/json/count', function(s){
+            $('#statustext').append('Recorded data: '+s.count+'<br>');
+        });
     });
 }
 

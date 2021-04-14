@@ -398,6 +398,19 @@ $.getJSON('status', function(s) {
     if(s.status) {
         $('#runbtn').css({'background-color':'red'});
         $('#runbtn').html('STOP');
+        $.getJSON('get/settings', function(st) {
+            $('#len').val(st.block);
+            $('#v_len').html(st.block);
+            // ... and here comes other settings
+        });
+    } else {
+        dd=new Date();
+        // Javascript starts month at 0 (January), funny heh?
+        sd =dd.getFullYear()+'-'+(dd.getMonth()+1)+'-'+dd.getDate()+'+';
+        sd+=dd.getHours()+':'+dd.getMinutes()+':'+dd.getSeconds();
+        $.get('set/date='+sd,function(rs) {
+            $('#statustext').html(rs+'<br>');
+        });
     }
 });
 

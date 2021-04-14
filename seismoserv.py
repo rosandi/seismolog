@@ -5,16 +5,17 @@ import sys
 import os
 import json
 
-from subprocess import check_output as cmd
+from subprocess import check_output
 from time import sleep,time
 
+version='1.0 (c) 2021, rosandi'
 sleeplength=0.01
 host=''
 port=8000
 app='yrapp.html'
 datapath='/home/pi/data'
 progpath='./'
-progparam='chanmask=7:block=2048:avg=1:delay=0:dir='+datapath
+settings='chanmask=7:block=2048:avg=1:delay=0:lat=0:lon=0:dir='+datapath
 mainprog='seismolog'
 
 for arg in sys.argv:
@@ -33,9 +34,12 @@ if ret != 0:
 
 busy=False
 
+def cmd(s):
+    return check_output(s).decode('ascii')
+
 def checkstatus():
         st=False
-        cout=cmd(['ps', '-e']).decode('ascii').split('\n')
+        cout=cmd(['ps', '-e']).split('\n')
         
         for c in cout:
             if c.find('seismolog') > 0:
@@ -43,17 +47,22 @@ def checkstatus():
                 break
 
         return st
-
+            
 class OtherApiHandler(BaseHTTPRequestHandler):
    
     def header(self,mime):
         self.send_response(200)
         self.send_header('Content-type',mime)
         self.end_headers()
-    
+        
+    def response(self,text,mime='text/plain'):
+        self.send_response(200)
+        self.send_header('Content-type',mime)
+        self.end_headers()
+        self.wfile.write(bytes(text,'utf-8'))        
     
     def do_GET(self):
-        global progparam
+        global settings,datapath
         
         acmd=self.requestline.split()
         print('Get request received',acmd)
@@ -91,12 +100,15 @@ class OtherApiHandler(BaseHTTPRequestHandler):
                 self.wfile.write(bytes("/* file not found {} */".format(htfile),'ascii'))
                 
         elif htfile == 'status':
-            s=json.dumps({'status':checkstatus()})
+            uptime=cmd('uptime')
+            disk=cmd(['df', '-h', '--output=size,used,avail,pcent', '/']).split('\n')
+            s={'status':checkstatus(),'uptime':uptime,'disk':disk}
+            s=json.dumps(s)
             self.header('text/json')
             self.wfile.write(bytes(s,'utf-8'))
         
         elif htfile == 'start':
-            prg=progpath+mainprog+' '+progparam.replace(':',' ')
+            prg=progpath+mainprog+' '+settings.replace(':',' ')
             if not checkstatus():
                 ret=os.system('nohup {} 2>/dev/null &'.format(prg))
                 print('running logging daemon ',prg)
@@ -116,15 +128,26 @@ class OtherApiHandler(BaseHTTPRequestHandler):
                  
         elif htfile.find('list') == 0:
             datafiles=[]
-            ext='.'+htfile.split()[1]
-            print('list ext: *{}'.format(ext))
+            sr=htfile.split()
+            ext='.'+sr[1]
+            
+            checkcnt=False
+            if len(sr) == 3:
+                if sr[2] == 'count':
+                    checkcnt=True
+
+            print('list ext: *'+ext)
+
             for df in os.listdir(datapath):
                 if df.rfind(ext) > 0:
                     datafiles.append(df)
-            datafiles.sort(reverse=True)
-            datafiles=json.dumps({'files':datafiles})
-            self.header('text/json')
-            self.wfile.write(bytes(datafiles,'utf-8'))
+                    
+            cnt=len(datafiles)
+            if checkcnt:
+                self.response(json.dumps({'count':cnt}))
+            else:
+                datafiles.sort(reverse=True)
+                self.response(json.dumps({'count':cnt,'files':datafiles}))
         
         elif htfile.find('load')==0:
             fname=datapath+'/'+htfile.replace('load ','')
@@ -144,14 +167,46 @@ class OtherApiHandler(BaseHTTPRequestHandler):
             sleep(5)
             os.system('sudo poweroff &')
             
-        elif htfile.find('par') == 0:
-            progparam=htfile.replace('par ','')
-            print('parameter request: '+progparam)
-            s='Logging parameters:<br>'+progparam
-            if progparam.find('dir=') < 0:
-                progparam+=':dir='+datapath
+        elif htfile.find('par ') == 0:
+            settings=htfile.replace('par ','')
+            print('parameter request: '+settings)
+            s='Logging parameters:<br>'+settings
+            if settings.find('dir=') < 0:
+                settings+=':dir='+datapath
             self.header('text/plain')
             self.wfile.write(bytes(s,'utf-8'))
+        
+        elif htfile.find('set ') == 0:
+            sreq=htfile.replace('set ','').split()
+            for s in sreq:
+                if s.find('date=') == 0: ## let use this format YY-MM-DD+HH:MM:SS
+                    d=s.replace('date=','').replace('+',' ')
+                    d=cmd(['date','--date='+d])
+                    print('set date: ',d)
+                    os.system('sudo date --set="'+d+'"')
+                    self.response(cmd('date'))
+                elif s.find('dir=') == 0:
+                    datapath=s.replace('dir=','')
+                    self.response('data directory set to '+datapath)
+                else:
+                    self.response('invalid set command: '+s)
+        
+        elif htfile.find('get ') == 0:
+            sreq=htfile.replace('set ','').split()
+            for s in sreq:
+                if s.find('free') == 0:
+                    ss=cmd(['df','/','--output=pcent'])
+                    ss=str(100-int(ss.replace('\n',' ').replace('%','').split[1]))
+                    self.response(ss)
+                
+                elif s.find('settings') == 0:
+                    rs=settings
+                    rs='{'+rs.replace(':',',').replace('=',':').replace('dir=','dir="')+'"}'
+                    print(rs)
+                    self.response(rs,'text/json')
+                    
+                elif s.find('version') == 0:
+                    self.response(version)
         
         else:
             print('unimplemented request: ',htfile)
