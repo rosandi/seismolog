@@ -192,18 +192,24 @@ class OtherApiHandler(BaseHTTPRequestHandler):
                     self.response('invalid set command: '+s)
         
         elif htfile.find('get ') == 0:
-            sreq=htfile.replace('set ','').split()
+            sreq=htfile.replace('get ','').split()
             for s in sreq:
+                print(s)
                 if s.find('free') == 0:
                     ss=cmd(['df','/','--output=pcent'])
                     ss=str(100-int(ss.replace('\n',' ').replace('%','').split[1]))
                     self.response(ss)
                 
                 elif s.find('settings') == 0:
-                    rs=settings
-                    rs='{'+rs.replace(':',',').replace('=',':').replace('dir=','dir="')+'"}'
-                    print(rs)
-                    self.response(rs,'text/json')
+                    rs=settings.split(':')
+                    js=''
+                    for ss in rs:
+                        ss=ss.split('=')
+                        js+=' "'+ss[0]+'":'+ss[1]
+                    
+                    rs='{'+js.strip().replace(' ',',').replace('"dir":','"dir":"')+'"}'
+                    print(rs) ##### DEBUG
+                    self.response(rs)
                     
                 elif s.find('version') == 0:
                     self.response(version)

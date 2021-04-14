@@ -204,7 +204,7 @@ p {
             </table>
             
             <div id='statustext' class='textlist' 
-            style='width:100%;height:30%;margin-top: 20px'>
+            style='width:100%;height:20em;margin-top: 20px'>
                 --OK--<br> 
             </div>
             <button id='statclr' class='cmdbtn' 
@@ -302,35 +302,19 @@ p {
             </table>
         
             </div>
-            <table style='margin-top:20px;margin-bottom:20px;'>
-            <!--- COMMAND BUTTON --->
-            <tr><td class='noborder' style='width:25%;padding:2px 0px;'>
-            <button id='sender' class='cmdbtn' 
-              style='width:90%;font-size:1.2em;' 
-              onclick='sendcmd()'>SEND CMD</button>
-            </td>
-            <td class='noborder' class='noborder' style='padding:2px 0px;'>
-            <input id='cmdtext' type='text' 
-            style='width:100%;font-size:1em;padding:10px'></input>
-            </td>
-            </tr>
-            </table>
             
-            <div id='longresponse' style="
-            width:100%;height:10em;
-            line-height:1em;
-            overflow:auto;
-            padding:5px;
-            background-color:lightgray;
-            color:red;">
+            
+            <div id='longresponse' class='textlist' 
+                 style="width:100%;height:10em;margin-top: 20px">
                 --OK--<br>
             </div>
+            
             <button id='respclr' class='cmdbtn' 
                 style='margin-top: 5px'
                 onclick='$("#longresponse").html("")'>
                 clear
             </button>
-            </div>
+            
         </div>
         
         <!-- INFORMATION TAB -->
@@ -383,36 +367,7 @@ for (i = 0; i < tabcontent.length; i++) {
     tabcontent[i].style.height = window.innerHeight+"px";
 }
 
-var input = document.getElementById("cmdtext");
-
-input.addEventListener("keyup", function(event) {
-  if (event.keyCode === 13) {
-   event.preventDefault();
-   document.getElementById("sender").click();
-  }
-});
-
 document.getElementById("controlTab").click();
-
-$.getJSON('status', function(s) {
-    if(s.status) {
-        $('#runbtn').css({'background-color':'red'});
-        $('#runbtn').html('STOP');
-        $.getJSON('get/settings', function(st) {
-            $('#len').val(st.block);
-            $('#v_len').html(st.block);
-            // ... and here comes other settings
-        });
-    } else {
-        dd=new Date();
-        // Javascript starts month at 0 (January), funny heh?
-        sd =dd.getFullYear()+'-'+(dd.getMonth()+1)+'-'+dd.getDate()+'+';
-        sd+=dd.getHours()+':'+dd.getMinutes()+':'+dd.getSeconds();
-        $.get('set/date='+sd,function(rs) {
-            $('#statustext').html(rs+'<br>');
-        });
-    }
-});
 
 //getLocation();
 

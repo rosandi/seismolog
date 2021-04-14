@@ -88,7 +88,6 @@ function getstatus() {
         } else {
             $('#statustext').append('Logging daemon is <strong>not running</strong><br>');
         }
-        console.log(stat)
         ss='Uptime: '+stat.uptime+'<br>Storage:<br>'
         sh=stat.disk[0].replace(/\s+/g, ' ').trim().split(' ');
         sc=stat.disk[1].replace(/\s+/g, ' ').trim().split(' ');
@@ -109,6 +108,7 @@ function getstatus() {
             $('#statustext').append('Recorded data: '+s.count+'<br>');
         });
     });
+    $('#statustext').scrollTop = $('#statustext').scrollHeight - $('#statustext').clientHeight;
 }
 
 function shutdown() {
@@ -119,16 +119,15 @@ function shutdown() {
 function togglerun() {
     $.getJSON('status',
     function(stat){
-        console.log('stat: '+stat.status)
         if(stat.status) {
             $.getJSON('stop',function(s){
                 console.log('stopping');
                 $('#runbtn').css({'background-color':'green'});
                 $('#runbtn').html('START');
                 var d=new Date();
-                sdate='stop: '+d.getDate()+'/'+d.getMonth()+'/'+d.getFullYear();
+                sdate='stop: '+d.getDate()+'-'+(d.getMonth()+1)+'-'+d.getFullYear();
                 sdate+=' '+d.getHours()+':'+d.getMinutes()+':'+d.getSeconds()+'<br>';
-                $('#statustext').append(sdate)
+                $('#statustext').append('<strong>'+sdate+'</strong>')
             });
         } else {
             $.getJSON('start',function(s){
@@ -136,9 +135,9 @@ function togglerun() {
                 $('#runbtn').css({'background-color':'red'});
                 $('#runbtn').html('STOP');
                 var d=new Date();
-                sdate='start logging at: '+d.getDate()+'/'+d.getMonth()+'/'+d.getFullYear();
+                sdate='start logging at: '+d.getDate()+'-'+(d.getMonth()+1)+'-'+d.getFullYear();
                 sdate+=' '+d.getHours()+':'+d.getMinutes()+':'+d.getSeconds()+'<br>';
-                $('#statustext').append(sdate);
+                $('#statustext').append('<strong>'+sdate+'</strong>');
                 $('#statustext').append(s.program+'<br>');
             });
         }
@@ -210,3 +209,26 @@ function apply() {
         $('#longresponse').append(resp+'<br>');
     });
 }
+
+//$.get('fetch/settings',function(rs) {console.log('TEST'+rs);});
+// Called on load
+$.getJSON('status', function(s) {
+    if(s.status) {
+        $('#runbtn').css({'background-color':'red'});
+        $('#runbtn').html('STOP');
+        $.getJSON('get/settings', function(st){
+            $('#longresponse').html('Device settings:<br>'+JSON.stringify(st)+'<br>');
+            $('#len').val(st.block);
+            $('#v_len').html(st.block);
+            // ... and here comes other settings
+        });
+    } else {
+        dd=new Date();
+        // Javascript starts month at 0 (January), funny heh?
+        sd =dd.getFullYear()+'-'+(dd.getMonth()+1)+'-'+dd.getDate()+'+';
+        sd+=dd.getHours()+':'+dd.getMinutes()+':'+dd.getSeconds();
+        $.get('set/date='+sd,function(rs) {
+            $('#statustext').html(rs+'<br>');
+        });
+    }
+});
