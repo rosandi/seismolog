@@ -182,6 +182,20 @@ function plotfile(fname) {
     });
 }
 
+function upload() {
+    fname=$('#display').html().replace(/FILE: /,'')+'.json';
+    $.getJSON('load/'+fname, function(data){
+        sd=JSON.stringify(data);
+        $.post('https://dock.unpad.ac.id/seismo/databox.php',
+            {name: fname, json: sd},
+            function(d,st) {
+            console.log('respons:',d);
+            console.log(st);
+        });
+    });
+}
+
+/*
 function sendcmd() {
     cmd=getval('cmdtext').replace(/ /g,'/');
     console.log(cmd);
@@ -189,6 +203,7 @@ function sendcmd() {
         $('#longresponse').append(data+'<br>');
     });
 }
+*/
 
 function apply() {
     msrlen=getval('len');
