@@ -188,7 +188,7 @@ class OtherApiHandler(BaseHTTPRequestHandler):
         elif htfile.find('set ') == 0:
             sreq=htfile.replace('set ','').split()
             for s in sreq:
-                if s.find('date=') == 0: ## let use this format YY-MM-DD+HH:MM:SS
+                if s.find('date=') == 0: ## let use this format YY-mm-dd+HH:MM:SS
                     d=s.replace('date=','').replace('+',' ')
                     d=cmd(['date','--date='+d])
                     print('set date: ',d)

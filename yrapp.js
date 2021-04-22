@@ -195,16 +195,6 @@ function upload() {
     });
 }
 
-/*
-function sendcmd() {
-    cmd=getval('cmdtext').replace(/ /g,'/');
-    console.log(cmd);
-    $.get(cmd,function(data){
-        $('#longresponse').append(data+'<br>');
-    });
-}
-*/
-
 function apply() {
     msrlen=getval('len');
     avg=getval('avg');
