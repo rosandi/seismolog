@@ -5,3 +5,5 @@ Note:
  
 In the directory setting add:
 - Header set Access-Control-Allow-Origin "*"
+
+[Manual in Indonesian](doc/about-id.md)
