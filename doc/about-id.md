@@ -1,7 +1,7 @@
 
-# SEISMOLOG
+# Aplikasi SEISMO-LOG berbasis WEB
 
-SEISMOLOG adalah aplikasi terintegrasi dengan piranti perekam getaran cerdas dengan sensor geofon tiga sumbu. Piranti perekam getaran mengikuti standard komunikasi barbasis web. Aplikasi ini tersimpan pada piranti, sehingga bagian penampil tidak dibebani untuk melakukan penjalanan program. Data yang sudah terekam dapat ditransfer melalui koneksi ssh (sftp), dengan menggunakan program-program *sftp-client* atau perintah scp dari komputer pribadi.
+**SEISMO-LOG** adalah perangkat lunak terintegrasi dengan sistem instrumentasi cerdas perekam getaran menggunakan sensor geofon tiga sumbu. Perangkat lunak ini didesain mengikuti standard komunikasi barbasis jaringan/web dengan protokol *hypertext*. Aplikasi ini tersimpan pada piranti, sehingga bagian penampil tidak dibebani untuk melakukan penjalanan program. Data yang sudah terekam dapat ditransfer melalui koneksi ssh (sftp), dengan menggunakan program-program *sftp-client* atau perintah scp dari komputer pribadi.
 
 Data-data hasil rekam disimpan dalam file dengan format **json**. Field dari data terdiri dari:
 
@@ -11,7 +11,7 @@ Data-data hasil rekam disimpan dalam file dengan format **json**. Field dari dat
 * Lokasi pengambilan data (lat, lon)
 * Larik data sesuai dengan sumbu sensor (x, y, dan z).
 
-SEISMOLOG berkomunikasi dengan pengguna melalui antar muka web, dengan protokol hypertext (HTTP). Alamat IP dari piranti ditetapkan sebagai 10.1.1.1, sehingga dapat dikendalikan dengan memasukan alamat tersebut pada browser umum. Fungsi kendali dikirimkan dengan request HTTP sebagai berikut:
+SEISMO-LOG berkomunikasi dengan pengguna melalui antar muka web, dengan protokol *hypertext* (HTTP). Alamat IP dari piranti ditetapkan sebagai 10.1.1.1, sehingga dapat dikendalikan dengan memasukan alamat tersebut pada browser umum. Fungsi kendali dikirimkan dengan request HTTP sebagai berikut:
 
 <verb>
 http://10.1.1.1/request/parameter
