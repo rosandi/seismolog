@@ -1,5 +1,13 @@
 #!/usr/bin/python3
 
+#---------------------------------
+# ADS1115 Interface module
+#
+# (c) 2021, Rosandi 
+#
+# rosandi@geophys.unpad.ac.id
+#
+
 import time
 import Adafruit_ADS1x15
 from gpiozero import Button

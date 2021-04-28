@@ -1,6 +1,12 @@
-/* 
-  Instrumentation apps
-  YRAPP
+/*------------------------------
+ * SeismoLog User Application
+ * 
+ * (c) 2021, Rosandi
+ * 
+ * User interface script to be sent to client
+ *
+ * rosandi@geophys.unpad.ac.id
+ * 
 */
 
 const ww= window.innerWidth;

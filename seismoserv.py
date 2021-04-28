@@ -1,16 +1,23 @@
 #!/usr/bin/python3
 
+#---------------------------
+# Device Server Program
+#
+# (c) 2021, Rosandi
+#
+# rosandi@geophys.unpad.ac.id
+#
+
 from http.server import BaseHTTPRequestHandler,HTTPServer
 import sys
 import os
 import json
 import markdown as md
-
+from pvsense import photomon
 from subprocess import check_output
 from time import sleep,time
 
 version='1.0 (c) 2021, rosandi'
-sleeplength=0.01
 host=''
 port=8000
 app='yrapp.html'
@@ -18,6 +25,11 @@ datapath='/home/pi/data'
 progpath='./'
 settings='chanmask=7:block=2048:avg=1:delay=0:lat=0:lon=0:dir='+datapath
 mainprog='seismolog'
+
+try:
+    pv=photomon()
+except:
+    pv=None
 
 for arg in sys.argv:
     if arg.find('host=') == 0:
@@ -99,7 +111,17 @@ class OtherApiHandler(BaseHTTPRequestHandler):
                 print('sent script: {}'.format(htfile))
             except:
                 self.wfile.write(bytes("/* file not found {} */".format(htfile),'ascii'))
-        
+ 
+        elif htfile.rfind('.css',len(htfile)-4)>0:
+            print('sending style---'+htfile)
+            try:
+                jsfile=open(htfile,mode='r')
+                htcontent=jsfile.read()
+                jsfile.close()
+                self.response(htcontent,'text/css')
+                print('sent css: {}'.format(htfile))
+            except:
+                self.response("/* file not found {} */".format(htfile))        
         elif htfile.rfind('.png',len(htfile)-4)>0:
             print('image:',htfile)
             self.header('image/png')
@@ -227,6 +249,12 @@ class OtherApiHandler(BaseHTTPRequestHandler):
                     
                 elif s.find('version') == 0:
                     self.response(version)
+                    
+                elif s.find('pvcheck') == 0:
+                    if pv != None:
+                        self.response(json.dumps(pv.read()),'text/json')
+                    else:
+                        self.response("no photovoltaik device")
         
         else:
             print('unimplemented request: ',htfile)
@@ -239,9 +267,8 @@ class OtherApiHandler(BaseHTTPRequestHandler):
 print("serving on %s:%s"%(host,port))
 
 try:
-    with HTTPServer((host,int(port)), OtherApiHandler) as server:
-        server.serve_forever()
-        
+    server=HTTPServer((host,int(port)), OtherApiHandler).serve_forever()
+
 except KeyboardInterrupt:
     print("\nterminating server")
     print("bye...")
