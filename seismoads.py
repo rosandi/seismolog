@@ -110,11 +110,14 @@ if __name__ == "__main__":
     import json
     import numpy as np
     
+    from sensors import pvsense   
+    
     blocklen=100
     dly=0
     avg=1 # oversampling average
     datapath='.'
-        
+    sensors='all'
+    
     for arg in sys.argv:
         if arg.find('block=') == 0:
             blocklen=int(arg.replace('block=',''))
@@ -131,6 +134,11 @@ if __name__ == "__main__":
             avg=int(arg.replace('avg=',''))
         if arg.find('dir=') == 0:
             datapath=arg.replace('dir=','')
+        if arg.find('sensors=') == 0:
+            sensors=arg.replace('sensors=')
+    
+    if sensors == 'all':
+        sensors='pv' # add other sensors here separated by colon ':'
 
     filename=datapath+'/'+time.strftime('%Y%m%d%H%M%S')+'.json'
     deviceInit()
@@ -144,11 +152,18 @@ if __name__ == "__main__":
     
     ad=(ad/avg).reshape((3,blocklen),order='F')
     d=ad.tolist()
-    
+
     dat={
         'tsample':t, 'tstart':tstart, 'length': blocklen, 
         'x':d[0], 'y':d[1], 'z':d[2]
         }
+    
+    # sensor measurements appended
+    for sen in sensors.split(':'):
+        if sen == 'pv':
+            pv=pvsense().read()
+            dat.update({'voltage':pv['voltage'],'current':pv['current']})
+        # other sensors follow
     
     f=open(filename, 'w')
     json.dump(dat,f)

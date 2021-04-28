@@ -13,7 +13,7 @@ import sys
 import os
 import json
 import markdown as md
-from pvsense import photomon
+from sensors import pvsense
 from subprocess import check_output
 from time import sleep,time
 
@@ -25,9 +25,10 @@ datapath='/home/pi/data'
 progpath='./'
 settings='chanmask=7:block=2048:avg=1:delay=0:lat=0:lon=0:dir='+datapath
 mainprog='seismolog'
+sensprog=progpath+'sensors.py'
 
 try:
-    pv=photomon()
+    pv=pvsense()
 except:
     pv=None
 
@@ -133,10 +134,10 @@ class OtherApiHandler(BaseHTTPRequestHandler):
         elif htfile == 'status':
             uptime=cmd('uptime')
             disk=cmd(['df', '-h', '--output=size,used,avail,pcent', '/']).split('\n')
-            s={'status':checkstatus(),'uptime':uptime,'disk':disk}
+            sens=cmd(sensprog)
+            s={'status':checkstatus(),'uptime':uptime,'disk':disk,'sens':sens}
             s=json.dumps(s)
-            self.header('text/json')
-            self.wfile.write(bytes(s,'utf-8'))
+            self.response(s,'text/json')
         
         elif htfile == 'start':
             prg=progpath+mainprog+' '+settings.replace(':',' ')
@@ -249,12 +250,6 @@ class OtherApiHandler(BaseHTTPRequestHandler):
                     
                 elif s.find('version') == 0:
                     self.response(version)
-                    
-                elif s.find('pvcheck') == 0:
-                    if pv != None:
-                        self.response(json.dumps(pv.read()),'text/json')
-                    else:
-                        self.response("no photovoltaik device")
         
         else:
             print('unimplemented request: ',htfile)

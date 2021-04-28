@@ -97,7 +97,7 @@ function getstatus() {
         ss='Uptime: '+stat.uptime+'<br>Storage:<br>'
         sh=stat.disk[0].replace(/\s+/g, ' ').trim().split(' ');
         sc=stat.disk[1].replace(/\s+/g, ' ').trim().split(' ');
-        dtab='<table style="width:13em"><tr><th class="noborder">'+sh[0]+
+        dtab='<table style="margin-left: 0;width:13em"><tr><th class="noborder">'+sh[0]+
               '</th><th class="noborder">'+sh[1]+
              '</th><th class="noborder">'+sh[2]+
              '</th><th class="noborder">'+sh[3]+
@@ -109,7 +109,10 @@ function getstatus() {
               '</td><td class="noborder">'+sc[3]+
               '</td></tr></table>';
         
-        $('#statustext').append(ss+dtab);
+        $('#statustext').append(ss+dtab+'<br>');
+        $('#statustext').append(stat.sens.replace(/\n/g,'<br>'))
+        $('#statustext').append('<br>');
+        
         $.getJSON('list/json/count', function(s){
             $('#statustext').append('Recorded data: '+s.count+'<br>');
         });
