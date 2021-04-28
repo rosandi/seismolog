@@ -101,7 +101,7 @@ class OtherApiHandler(BaseHTTPRequestHandler):
             icofile.close()
             self.wfile.write(ico)
             
-        elif htfile.rfind('.js',len(htfile)-3)>0:
+        elif htfile.find('.js',len(htfile)-3)>0:
             # we may limit only to specific javascripts
             self.header('text/plain')
             try:
@@ -113,7 +113,7 @@ class OtherApiHandler(BaseHTTPRequestHandler):
             except:
                 self.wfile.write(bytes("/* file not found {} */".format(htfile),'ascii'))
  
-        elif htfile.rfind('.css',len(htfile)-4)>0:
+        elif htfile.find('.css',len(htfile)-4)>0:
             print('sending style---'+htfile)
             try:
                 jsfile=open(htfile,mode='r')
@@ -123,7 +123,7 @@ class OtherApiHandler(BaseHTTPRequestHandler):
                 print('sent css: {}'.format(htfile))
             except:
                 self.response("/* file not found {} */".format(htfile))        
-        elif htfile.rfind('.png',len(htfile)-4)>0:
+        elif htfile.find('.png',len(htfile)-4)>0:
             print('image:',htfile)
             self.header('image/png')
             imgfl=open(progpath+'/doc/'+htfile,'rb')
@@ -171,7 +171,7 @@ class OtherApiHandler(BaseHTTPRequestHandler):
             print('list ext: *'+ext)
 
             for df in os.listdir(datapath):
-                if df.rfind(ext) > 0:
+                if df.find(ext,len(df)-5) > 0:
                     datafiles.append(df)
                     
             cnt=len(datafiles)
