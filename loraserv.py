@@ -37,20 +37,20 @@ class Receiver(LoRa):
         msg,_=msgstr(payload)
 
         if self.cnt == 0:
-            self.fname == msg
+            self.fname = msg
         else:
             self.recvbuf+=msg
 
         print ("Received: "+msg)
         
         if msg[-1:] == '\0':
+            with open(self.fname,'w') as fd:
+                fd.write(self.recvbuf[:-1])
             time.sleep(2)
             print ("Send: ACK")
             self.write_payload(msgfmt('ACK'))
             self.set_mode(MODE.TX)
-            with open(self.fname,'w') as fd:
-                fd.write(self.recvbuf[:-1])
-        
+
         self.cnt+=1
         self.var=1
 

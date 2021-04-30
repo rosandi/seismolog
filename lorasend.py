@@ -9,7 +9,7 @@ BOARD.reset()
 
 MSGHEAD=[255, 255, 0, 0]
 MSGTAIL=[0]
-CHUNKSIZE=10-len(MSGTAIL)-len(MSGTAIL)
+CHUNKSIZE=16-len(MSGTAIL)-len(MSGTAIL)
 
 def msgfmt(msg,eof=True):
     msg=MSGHEAD+[ord(m) for m in msg]
@@ -40,7 +40,7 @@ class Sender(LoRa):
         payload = self.read_payload(nocheck=True )# Receive INF
         mens,_=msgstr(payload)
         if mens=="INF":
-            if self.cnt < self.nlines:
+            if self.cnt <= self.nlines: # one extra line: filename
                 print("Received data request INF")
                 time.sleep(2)
                 self.write_payload(msgfmt(self.content[self.cnt]))
