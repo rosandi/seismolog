@@ -1,0 +1,122 @@
+* {box-sizing: border-box}
+
+/* Set height of body and the document to 100% */
+body, html {
+  width: 100%;
+  margin: 0;
+  font-family: Arial;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+/* Style tab links */
+.tablink {
+  background-color: #555;
+  color: white;
+  float: left;
+  border: none;
+  outline: none;
+  cursor: pointer;
+  padding: 20px 10px;
+  font-size: 17px;
+  width: 100%;
+  border-radius: 10px;
+}
+
+.tablink:hover {
+  background-color: #777;
+}
+
+/* Style tab links */
+.cmdbtn {
+  background-color: #555;
+  color: white;
+  float: left;
+  border: 1px solid white;
+  outline: none;
+  cursor: pointer;
+  padding: 5px;
+  text-align: center;
+  margin-left: 5px;
+  margin-right: 5px;
+  font-size: 1.5em; 
+  font-weight: bold;
+  border-radius: 10px;
+}
+
+.cmdbtn:hover {
+  background-color: #777;
+}
+
+
+/* Style the tab content (and add height:100% for full page content) */
+.tabcontent {
+  color: white;
+  display: none;
+  padding: 10px 20px;
+  overflow-y: auto;
+}
+
+.noborder {
+  border: 0px;
+  vertical-align:top;
+}
+
+.textlist {
+  line-height:1em;
+  overflow:auto;
+  padding:5px;
+  background-color:lightgray;
+  color:red;
+}
+
+.cell {
+  color: red;
+  padding: 8px 8px;
+  text-align: center;
+}
+
+.cell:hover{
+      background-color: #777;
+}
+
+table {
+  font-family: arial, sans-serif;
+  border-collapse: collapse;
+  width: 80%;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+td, th {
+  border: 1px solid #dddddd;
+  text-align: left;
+  padding: 2px;
+}
+
+p, li {
+    padding-left: 20px;
+    padding-right: 20px;
+    text-align: justify;
+    line-height: 1.5;
+}
+
+h1, h2 {
+  text-align: center;
+  margin-top: 2em;
+}
+
+.rangeinput {
+    width: 100%;
+}
+
+.vdisplay {
+  border: 0px;
+  vertical-align:top;
+  text-align:center;
+}
+
+#about {background-color: gray;}
+#dataplot {background-color: green;}
+#settings {background-color: blue;}
+#control {background-color: gray;}
