@@ -1,7 +1,10 @@
 #!/bin/bash
 
+#ADCPROG=./seismoads.py
+ADCPROG=./seismo1256.py
+
 while true; do
   diskuse=$(df | awk '/^\/dev\/root/{print $5}' | sed 's/%//')
   [[ $diskuse -gt 80 ]] && exit
-  ./seismoads.py $@
+  $ADCPROG $@
 done

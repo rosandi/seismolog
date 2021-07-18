@@ -48,6 +48,8 @@ def deviceInit(port='ADS1115',speed=860):
         adc = Adafruit_ADS1x15.ADS1115()
     elif port == 'ADS1015':
         adc = Adafruit_ADS1x15.ADS1015()
+    elif port == 'ADS1256':
+		
     else:
         print('unknown device: {}'.format(port))
         exit()
