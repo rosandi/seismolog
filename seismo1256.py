@@ -45,9 +45,9 @@ def readadc(n=1, oversample=1, delay=0.0):
             y+=adc.ADS1256_GetChannalValue(1)
             z+=adc.ADS1256_GetChannalValue(2)
 
-        vals.append(x/oversample)
-        vals.append(y/oversample)
-        vals.append(z/oversample)
+        vals.append(x/oversample/float(0x7fffff))
+        vals.append(y/oversample/float(0x7fffff))
+        vals.append(z/oversample/float(0x7fffff))
 
     time.sleep(delay)
 

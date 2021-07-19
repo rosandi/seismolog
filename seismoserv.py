@@ -20,8 +20,8 @@ version='1.0 (c) 2021, rosandi'
 host=''
 port=8000
 app='yrapp.html'
-datapath='/home/pi/data'
-progpath='./'
+datapath='/home/seismo/data'
+progpath='/home/seismo/seismolog/'
 settings='chanmask=7:block=2048:avg=1:delay=0:lat=0:lon=0:dir='+datapath
 mainprog='seismolog'
 
@@ -84,7 +84,7 @@ class OtherApiHandler(BaseHTTPRequestHandler):
 
         if htfile == '' or htfile=='app':
             self.header('text/html')
-            appfile=open(app,mode='r')
+            appfile=open(progpath+app,mode='r')
             htcontent=appfile.read()
             appfile.close()
             self.wfile.write(bytes(htcontent,'utf-8'))
@@ -92,7 +92,7 @@ class OtherApiHandler(BaseHTTPRequestHandler):
             
         elif htfile == 'favicon.ico':
             self.header('image/x-icon')
-            icofile=open('favicon.ico',mode='rb')
+            icofile=open(progpath+'favicon.ico',mode='rb')
             ico=icofile.read()
             icofile.close()
             self.wfile.write(ico)
@@ -101,7 +101,7 @@ class OtherApiHandler(BaseHTTPRequestHandler):
             # we may limit only to specific javascripts
             self.header('text/plain')
             try:
-                jsfile=open(htfile,mode='r')
+                jsfile=open(progpath+htfile,mode='r')
                 htcontent=jsfile.read()
                 jsfile.close()
                 self.wfile.write(bytes(htcontent,'utf-8'))
@@ -112,7 +112,7 @@ class OtherApiHandler(BaseHTTPRequestHandler):
         elif htfile.find('.css',len(htfile)-4)>0:
             print('sending style---'+htfile)
             try:
-                jsfile=open(htfile,mode='r')
+                jsfile=open(progpath+htfile,mode='r')
                 htcontent=jsfile.read()
                 jsfile.close()
                 self.response(htcontent,'text/css')

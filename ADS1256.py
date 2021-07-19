@@ -77,6 +77,10 @@ class ADS1256:
         config.digital_write(self.rst_pin, GPIO.LOW)
         config.delay_ms(200)
         config.digital_write(self.rst_pin, GPIO.HIGH)
+        
+    def ADS1256_sleep(self):
+        config.digital_write(self.rst_pin, GPIO.LOW)
+        config.delay_ms(200)
     
     def ADS1256_WriteCmd(self, reg):
         config.digital_write(self.cs_pin, GPIO.LOW)#cs  0

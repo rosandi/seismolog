@@ -1,7 +1,8 @@
 #!/bin/bash
 
 #ADCPROG=./seismoads.py
-ADCPROG=./seismo1256.py
+
+ADCPROG=$(dirname $0)/seismo1256.py
 
 while true; do
   diskuse=$(df | awk '/^\/dev\/root/{print $5}' | sed 's/%//')
