@@ -1,7 +1,6 @@
 import config1256 as config
 import RPi.GPIO as GPIO
 
-
 ScanMode = 0
 
 
@@ -78,11 +77,6 @@ class ADS1256:
         config.digital_write(self.rst_pin, GPIO.LOW)
         config.delay_ms(200)
         config.digital_write(self.rst_pin, GPIO.HIGH)
-
-    # power down
-    def ADS1256_sleep(self):
-        config.digital_write(self.rst_pin, GPIO.LOW)
-        config.delay_ms(200)
     
     def ADS1256_WriteCmd(self, reg):
         config.digital_write(self.cs_pin, GPIO.LOW)#cs  0
@@ -105,10 +99,10 @@ class ADS1256:
     def ADS1256_WaitDRDY(self):
         for i in range(0,400000,1):
             if(config.digital_read(self.drdy_pin) == 0):
-                
                 break
+                
         if(i >= 400000):
-            print ("Time Out ...\r\n")
+            print ("#Time Out ...\n")
         
         
     def ADS1256_ReadChipID(self):
@@ -152,6 +146,7 @@ class ADS1256:
             self.ADS1256_WriteReg(REG_E['REG_MUX'], (6 << 4) | 7) 	#DiffChannal   AIN6-AIN7
 
     def ADS1256_SetMode(self, Mode):
+        global ScanMode
         ScanMode = Mode
 
     def ADS1256_init(self):
@@ -159,11 +154,10 @@ class ADS1256:
             return -1
         self.ADS1256_reset()
         id = self.ADS1256_ReadChipID()
-        if id == 3 :
-            print("ID Read success  ")
-        else:
-            print("ID Read failed   ")
+        if id != 3 :
+            print("#ID Read failed   ")
             return -1
+            
         self.ADS1256_ConfigADC(ADS1256_GAIN_E['ADS1256_GAIN_1'], ADS1256_DRATE_E['ADS1256_30000SPS'])
         return 0
         
@@ -178,12 +172,14 @@ class ADS1256:
         read = (buf[0]<<16) & 0xff0000
         read |= (buf[1]<<8) & 0xff00
         read |= (buf[2]) & 0xff
-        if (read & 0x800000):
-            read &= 0xF000000
+        
+        if (read & 0x800000) != 0:
+            read-=1<<24
+            
         return read
  
     def ADS1256_GetChannalValue(self, Channel):
-        if(ScanMode == 0):# 0  Single-ended input  8 channel1 Differential input  4 channe 
+        if(ScanMode == 0):# 0  Single-ended input  8 channel 1 Differential input  4 channe 
             if(Channel>=8):
                 return 0
             self.ADS1256_SetChannal(Channel)

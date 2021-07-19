@@ -13,7 +13,6 @@ import sys
 import os
 import json
 import markdown as md
-from sensors import pvsense
 from subprocess import check_output
 from time import sleep,time
 
@@ -25,12 +24,8 @@ datapath='/home/pi/data'
 progpath='./'
 settings='chanmask=7:block=2048:avg=1:delay=0:lat=0:lon=0:dir='+datapath
 mainprog='seismolog'
-sensprog=progpath+'sensors.py'
 
-try:
-    pv=pvsense()
-except:
-    pv=None
+sensprog=None
 
 for arg in sys.argv:
     if arg.find('host=') == 0:
@@ -39,7 +34,8 @@ for arg in sys.argv:
         port=arg.replace('port=','')
     if arg.find('dir=') == 0:
         datapath=arg.replace('dir=','')
-
+    if arg.find('sensor=') == 0:
+        sensprog=arg.replace('sensor=','')
 
 ret=os.system('mkdir -p {}'.format(datapath))
 
@@ -134,8 +130,13 @@ class OtherApiHandler(BaseHTTPRequestHandler):
         elif htfile == 'status':
             uptime=cmd('uptime')
             disk=cmd(['df', '-h', '--output=size,used,avail,pcent', '/']).split('\n')
-            sens=cmd(sensprog)
-            s={'status':checkstatus(),'uptime':uptime,'disk':disk,'sens':sens}
+            
+            if sensprog != None:
+                sens=cmd(sensprog)
+                s={'status':checkstatus(),'uptime':uptime,'disk':disk,'sens':sens}
+            else:
+                s={'status':checkstatus(),'uptime':uptime,'disk':disk}
+                
             s=json.dumps(s)
             self.response(s,'text/json')
         
