@@ -213,7 +213,8 @@ function apply() {
     dt=getval('dt');
     vgain=getval('gain');   
     sconf='par/gain='+vgain+':block='+msrlen+':avg='+avg+':dt='+dt+'/';
-    
+    $('#applybtn').css({'background-color':'#555'});
+    setdirty=false;
     $.get(sconf,function(resp){
         $('#statustext').append(resp+'<br>');
     });

@@ -131,9 +131,7 @@
                         <button class='appbtn' onclick='listFiles()'>
                             REFRESH LIST
                         </button><br>
-                        <button class='appbtn' onclick='upload()'>
-                            SEND FILE
-                        </button>
+
                     </div>
 
                 </td></tr>
@@ -201,12 +199,17 @@
 </table>
 
 <script>
+setdirty=false;
 
 function opentab(tabid) {
   document.getElementById(tabid).click();
 }
 
 function rangechg(val,vid) {
+  if (!setdirty) {
+    setdirty=true;
+    $('#applybtn').css({'background-color':'red'});
+  }
   document.getElementById(vid).innerHTML=val;
 }
 

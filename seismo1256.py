@@ -30,10 +30,16 @@ def deviceInit():
     adc.initADC(devgain,rate)
     adc.setMode(1) # differential input
 
-def readadc(n=1, oversample=1, delay=0.0):
+def readadc(n=1, oversample=1, delay=0.0, presample=0):
     vals=[]
     tstart=time.time()
-
+    
+    # presampling: throw out bad data
+    for i in range(presample):
+        adc.getValue(0)
+        adc.getValue(1)
+        adc.getValue(2)
+    
     for i in range(n):	
         x=0
         y=0
@@ -96,6 +102,7 @@ if __name__ == "__main__":
     filename=None
     fileformat='json'
     major='column'
+    presample=0
     
     for arg in sys.argv:
         arg=arg.strip()
@@ -108,7 +115,7 @@ if __name__ == "__main__":
         if arg.find('gain=') == 0:
             devgain=int(arg.replace('gain=',''))
         if arg.find('dt=') == 0:
-            dly=float(arg.replace('delay=',''))
+            dly=float(arg.replace('dt=',''))
         if arg.find('avg=') == 0: # oversampling
             avg=int(arg.replace('avg=',''))
         if arg.find('dir=') == 0:
@@ -117,7 +124,9 @@ if __name__ == "__main__":
             fileformat=arg.replace('format=','')
         if arg.find('major=') == 0:
             major=arg.replace('major=','')
-            
+        if arg.find('presample=') == 0:
+            presample=int(arg.replace('presample=',''))
+
     
     if filename==None:
         filename=datapath+'/'+time.strftime('%Y%m%d%H%M%S')
@@ -125,7 +134,7 @@ if __name__ == "__main__":
     deviceInit()
     ad=np.zeros(blocklen*3)  
     tstart=time.time()
-    t,d=readadc(blocklen,avg,dly)
+    t,d=readadc(blocklen,avg,dly,presample)
         
     if fileformat == 'text':
         filename=filename+'.txt'

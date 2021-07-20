@@ -7,6 +7,6 @@ ADCPROG=$(dirname $0)/seismo1256.py
 while true; do
   diskuse=$(df | awk '/^\/dev\/root/{print $5}' | sed 's/%//')
   [[ $diskuse -gt 80 ]] && exit
-  echo running: ADCPROG $@
-  $ADCPROG $@
+  echo running: ADCPROG $@ 
+  $ADCPROG $@ presample=50
 done

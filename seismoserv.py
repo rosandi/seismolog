@@ -24,7 +24,7 @@ datapath='/home/seismo/data/'
 progpath='/home/seismo/seismolog/'
 
 # FIXME!
-settings='chanmask=7:block=2048:avg=1:dt=0:lat=0:lon=0:dir='+datapath
+settings='block=2048:avg=1:dt=0:lat=0:lon=0:dir='+datapath
 
 mainprog='seismolog'
 parfile='config.txt'
@@ -278,6 +278,10 @@ class OtherApiHandler(BaseHTTPRequestHandler):
                     
                 elif s.find('version') == 0:
                     self.response(version)
+        
+        elif htfile.find('stream ') == 0:
+            sreq=htfile.replace('get ', '').split()
+            
         
         else:
             print('unimplemented request: ',htfile)
