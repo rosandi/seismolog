@@ -1,212 +1,215 @@
-import config1256 as config
 import RPi.GPIO as GPIO
+import spidev
+import time
 
-ScanMode = 0
-
-
-# gain channel
-ADS1256_GAIN_E = {'ADS1256_GAIN_1' : 0, # GAIN   1
-                  'ADS1256_GAIN_2' : 1,	# GAIN   2
-                  'ADS1256_GAIN_4' : 2,	# GAIN   4
-                  'ADS1256_GAIN_8' : 3,	# GAIN   8
-                  'ADS1256_GAIN_16' : 4,# GAIN  16
-                  'ADS1256_GAIN_32' : 5,# GAIN  32
-                  'ADS1256_GAIN_64' : 6,# GAIN  64
-                 }
+spi=spidev.SpiDev(0, 0)
+RST_PIN  = 18
+CS_PIN   = 22
+DRDY_PIN = 17
 
 # data rate
-ADS1256_DRATE_E = {'ADS1256_30000SPS' : 0xF0, # reset the default values
-                   'ADS1256_15000SPS' : 0xE0,
-                   'ADS1256_7500SPS' : 0xD0,
-                   'ADS1256_3750SPS' : 0xC0,
-                   'ADS1256_2000SPS' : 0xB0,
-                   'ADS1256_1000SPS' : 0xA1,
-                   'ADS1256_500SPS' : 0x92,
-                   'ADS1256_100SPS' : 0x82,
-                   'ADS1256_60SPS' : 0x72,
-                   'ADS1256_50SPS' : 0x63,
-                   'ADS1256_30SPS' : 0x53,
-                   'ADS1256_25SPS' : 0x43,
-                   'ADS1256_15SPS' : 0x33,
-                   'ADS1256_10SPS' : 0x20,
-                   'ADS1256_5SPS' : 0x13,
-                   'ADS1256_2d5SPS' : 0x03
-                  }
+DRATE_E = {'30000SPS' : 0xF0, # reset the default values
+           '15000SPS' : 0xE0,
+           '7500SPS' : 0xD0,
+           '3750SPS' : 0xC0,
+           '2000SPS' : 0xB0,
+           '1000SPS' : 0xA1,
+           '500SPS' : 0x92,
+           '100SPS' : 0x82,
+           '60SPS' : 0x72,
+           '50SPS' : 0x63,
+           '30SPS' : 0x53,
+           '25SPS' : 0x43,
+           '15SPS' : 0x33,
+           '10SPS' : 0x20,
+           '5SPS' : 0x13,
+           '2d5SPS' : 0x03
+          }
 
 # registration definition
-REG_E = {'REG_STATUS' : 0,  # x1H
-         'REG_MUX' : 1,     # 01H
-         'REG_ADCON' : 2,   # 20H
-         'REG_DRATE' : 3,   # F0H
-         'REG_IO' : 4,      # E0H
-         'REG_OFC0' : 5,    # xxH
-         'REG_OFC1' : 6,    # xxH
-         'REG_OFC2' : 7,    # xxH
-         'REG_FSC0' : 8,    # xxH
-         'REG_FSC1' : 9,    # xxH
-         'REG_FSC2' : 10,   # xxH
+REG_E = {'STATUS': 0,  # x1H
+         'MUX'   : 1,  # 01H
+         'ADCON' : 2,  # 20H
+         'DRATE' : 3,  # F0H
+         'IO'    : 4,  # E0H
+         'OFC0'  : 5,  # xxH
+         'OFC1'  : 6,  # xxH
+         'OFC2'  : 7,  # xxH
+         'FSC0'  : 8,  # xxH
+         'FSC1'  : 9,  # xxH
+         'FSC2'  :10,  # xxH
         }
 
 # command definition
-CMD = {'CMD_WAKEUP' : 0x00,     # Completes SYNC and Exits Standby Mode 0000  0000 (00h)
-       'CMD_RDATA' : 0x01,      # Read Data 0000  0001 (01h)
-       'CMD_RDATAC' : 0x03,     # Read Data Continuously 0000   0011 (03h)
-       'CMD_SDATAC' : 0x0F,     # Stop Read Data Continuously 0000   1111 (0Fh)
-       'CMD_RREG' : 0x10,       # Read from REG rrr 0001 rrrr (1xh)
-       'CMD_WREG' : 0x50,       # Write to REG rrr 0101 rrrr (5xh)
-       'CMD_SELFCAL' : 0xF0,    # Offset and Gain Self-Calibration 1111    0000 (F0h)
-       'CMD_SELFOCAL' : 0xF1,   # Offset Self-Calibration 1111    0001 (F1h)
-       'CMD_SELFGCAL' : 0xF2,   # Gain Self-Calibration 1111    0010 (F2h)
-       'CMD_SYSOCAL' : 0xF3,    # System Offset Calibration 1111   0011 (F3h)
-       'CMD_SYSGCAL' : 0xF4,    # System Gain Calibration 1111    0100 (F4h)
-       'CMD_SYNC' : 0xFC,       # Synchronize the A/D Conversion 1111   1100 (FCh)
-       'CMD_STANDBY' : 0xFD,    # Begin Standby Mode 1111   1101 (FDh)
-       'CMD_RESET' : 0xFE,      # Reset to Power-Up Values 1111   1110 (FEh)
+CMD = {'WAKEUP' : 0x00,     # Completes SYNC and Exits Standby Mode 0000  0000 (00h)
+       'RDATA' : 0x01,      # Read Data 0000  0001 (01h)
+       'RDATAC' : 0x03,     # Read Data Continuously 0000   0011 (03h)
+       'SDATAC' : 0x0F,     # Stop Read Data Continuously 0000   1111 (0Fh)
+       'RREG' : 0x10,       # Read from REG rrr 0001 rrrr (1xh)
+       'WREG' : 0x50,       # Write to REG rrr 0101 rrrr (5xh)
+       'SELFCAL' : 0xF0,    # Offset and Gain Self-Calibration 1111    0000 (F0h)
+       'SELFOCAL' : 0xF1,   # Offset Self-Calibration 1111    0001 (F1h)
+       'SELFGCAL' : 0xF2,   # Gain Self-Calibration 1111    0010 (F2h)
+       'SYSOCAL' : 0xF3,    # System Offset Calibration 1111   0011 (F3h)
+       'SYSGCAL' : 0xF4,    # System Gain Calibration 1111    0100 (F4h)
+       'SYNC' : 0xFC,       # Synchronize the A/D Conversion 1111   1100 (FCh)
+       'STANDBY' : 0xFD,    # Begin Standby Mode 1111   1101 (FDh)
+       'RESET' : 0xFE,      # Reset to Power-Up Values 1111   1110 (FEh)
       }
+      
+def digital_write(pin, value):
+    GPIO.output(pin, value)
+
+def digital_read(pin):
+    return GPIO.input(DRDY_PIN)
+
+def delay_ms(delaytime):
+    time.sleep(delaytime // 1000.0)
 
 class ADS1256:
     def __init__(self):
-        self.rst_pin = config.RST_PIN
-        self.cs_pin = config.CS_PIN
-        self.drdy_pin = config.DRDY_PIN
-
-    # Hardware reset
-    def ADS1256_reset(self):
-        config.digital_write(self.rst_pin, GPIO.HIGH)
-        config.delay_ms(200)
-        config.digital_write(self.rst_pin, GPIO.LOW)
-        config.delay_ms(200)
-        config.digital_write(self.rst_pin, GPIO.HIGH)
+        self.rst_pin = RST_PIN
+        self.cs_pin = CS_PIN
+        self.drdy_pin = DRDY_PIN
+        self.mode=0
         
-    def ADS1256_sleep(self):
-        config.digital_write(self.rst_pin, GPIO.LOW)
-        config.delay_ms(200)
-    
-    def ADS1256_WriteCmd(self, reg):
-        config.digital_write(self.cs_pin, GPIO.LOW)#cs  0
-        config.spi_writebyte([reg])
-        config.digital_write(self.cs_pin, GPIO.HIGH)#cs 1
-    
-    def ADS1256_WriteReg(self, reg, data):
-        config.digital_write(self.cs_pin, GPIO.LOW)#cs  0
-        config.spi_writebyte([CMD['CMD_WREG'] | reg, 0x00, data])
-        config.digital_write(self.cs_pin, GPIO.HIGH)#cs 1
+        GPIO.setmode(GPIO.BCM)
+        GPIO.setwarnings(False)
+        GPIO.setup(RST_PIN, GPIO.OUT)
+        GPIO.setup(CS_PIN, GPIO.OUT)
+        GPIO.setup(DRDY_PIN, GPIO.IN, pull_up_down=GPIO.PUD_UP)
+        spi.max_speed_hz = 20000
+        spi.mode = 0b01
         
-    def ADS1256_Read_data(self, reg):
-        config.digital_write(self.cs_pin, GPIO.LOW)#cs  0
-        config.spi_writebyte([CMD['CMD_RREG'] | reg, 0x00])
-        data = config.spi_readbytes(1)
-        config.digital_write(self.cs_pin, GPIO.HIGH)#cs 1
+    def reset(self):
+        digital_write(self.rst_pin, GPIO.HIGH)
+        delay_ms(200)
+        digital_write(self.rst_pin, GPIO.LOW)
+        delay_ms(200)
+        digital_write(self.rst_pin, GPIO.HIGH)
+        
+    def sleep(self):
+        digital_write(self.rst_pin, GPIO.LOW)
+        delay_ms(200)
+    
+    def writeCmd(self, reg):
+        digital_write(self.cs_pin, GPIO.LOW)
+        spi.writebytes([reg])
+        digital_write(self.cs_pin, GPIO.HIGH)
+    
+    def writeReg(self, reg, data):
+        digital_write(self.cs_pin, GPIO.LOW)
+        spi.writebytes([CMD['WREG'] | reg, 0x00, data])
+        digital_write(self.cs_pin, GPIO.HIGH)
+        
+    def readData(self, reg):
+        digital_write(self.cs_pin, GPIO.LOW)
+        spi.writebytes([CMD['RREG'] | reg, 0x00])
+        data = spi.readbytes(1)
+        digital_write(self.cs_pin, GPIO.HIGH)
 
         return data
         
-    def ADS1256_WaitDRDY(self):
-        for i in range(0,400000,1):
-            if(config.digital_read(self.drdy_pin) == 0):
+    def waitDRDY(self):
+        for i in range(400000):
+            if(digital_read(self.drdy_pin) == 0):
                 break
                 
         if(i >= 400000):
             print ("#Time Out ...\n")
         
         
-    def ADS1256_ReadChipID(self):
-        self.ADS1256_WaitDRDY()
-        id = self.ADS1256_Read_data(REG_E['REG_STATUS'])
+    def readChipID(self):
+        self.waitDRDY()
+        id = self.readData(REG_E['STATUS'])
         id = id[0] >> 4
-        # print 'ID',id
         return id
         
-    #The configuration parameters of ADC, gain and data rate
-    def ADS1256_ConfigADC(self, gain, drate):
-        self.ADS1256_WaitDRDY()
-        buf = [0,0,0,0,0,0,0,0]
-        buf[0] = (0<<3) | (1<<2) | (0<<1)
-        buf[1] = 0x08
-        buf[2] = (0<<5) | (0<<3) | (gain<<0)
-        buf[3] = drate
+    def configADC(self, gain, drate):
         
-        config.digital_write(self.cs_pin, GPIO.LOW)#cs  0
-        config.spi_writebyte([CMD['CMD_WREG'] | 0, 0x03])
-        config.spi_writebyte(buf)
+        self.waitDRDY()
+        digital_write(self.cs_pin, GPIO.LOW)
+        delay_ms(10)
         
-        config.digital_write(self.cs_pin, GPIO.HIGH)#cs 1
-        config.delay_ms(1) 
+        # 0. reset
+        spi.writebytes([0xFE]) 
+        
+        # 1. status byte/config
+        spi.writebytes([CMD['WREG']|REG_E['STATUS'], 0x00, 0x01])
+        
+        # 2. gain setting
+        spi.writebytes([CMD['WREG']|REG_E['ADCON'], 0x00, 0x20|gain])
+        
+        # 2. datarate setting
+        spi.writebytes([CMD['WREG']|REG_E['DRATE'], 0x00, drate])
+        delay_ms(1)
+        
+        digital_write(self.cs_pin, GPIO.HIGH)
+        delay_ms(1) 
 
-
-
-    def ADS1256_SetChannal(self, Channal):
-        if Channal > 7:
+    def setChannel(self, chan):
+        if channel > 7:
             return 0
-        self.ADS1256_WriteReg(REG_E['REG_MUX'], (Channal<<4) | (1<<3))
+        
+        self.writeReg(REG_E['MUX'], (chan<<4) | (1<<3))
 
-    def ADS1256_SetDiffChannal(self, Channal):
-        if Channal == 0:
-            self.ADS1256_WriteReg(REG_E['REG_MUX'], (0 << 4) | 1) 	#DiffChannal  AIN0-AIN1
-        elif Channal == 1:
-            self.ADS1256_WriteReg(REG_E['REG_MUX'], (2 << 4) | 3) 	#DiffChannal   AIN2-AIN3
-        elif Channal == 2:
-            self.ADS1256_WriteReg(REG_E['REG_MUX'], (4 << 4) | 5) 	#DiffChannal    AIN4-AIN5
-        elif Channal == 3:
-            self.ADS1256_WriteReg(REG_E['REG_MUX'], (6 << 4) | 7) 	#DiffChannal   AIN6-AIN7
+    def setDiffChannel(self, chan):
+        if chan == 0:
+            self.writeReg(REG_E['MUX'], 0x01)
+        elif chan == 1:
+            self.writeReg(REG_E['MUX'], 0x23)
+        elif chan == 2:
+            self.writeReg(REG_E['MUX'], 0x45)
+        elif chan == 3:
+            self.writeReg(REG_E['MUX'], 0x67)
 
-    def ADS1256_SetMode(self, Mode):
-        global ScanMode
-        ScanMode = Mode
+    def setMode(self, Mode):
+        self.mode = Mode
 
-    def ADS1256_init(self):
-        if (config.module_init() != 0):
-            return -1
-        self.ADS1256_reset()
-        id = self.ADS1256_ReadChipID()
+    def initADC(self, gain, drate):
+        self.reset()
+        id = self.readChipID()
+
         if id != 3 :
             print("#ID Read failed   ")
             return -1
             
-        self.ADS1256_ConfigADC(ADS1256_GAIN_E['ADS1256_GAIN_1'], ADS1256_DRATE_E['ADS1256_30000SPS'])
+        self.configADC(gain, drate)
         return 0
         
-    def ADS1256_Read_ADC_Data(self):
-        self.ADS1256_WaitDRDY()
-        config.digital_write(self.cs_pin, GPIO.LOW)#cs  0
-        config.spi_writebyte([CMD['CMD_RDATA']])
-        # config.delay_ms(10)
+    def readADC(self):
+        self.waitDRDY()
+        digital_write(self.cs_pin, GPIO.LOW)
+        spi.writebytes([CMD['RDATA']])
 
-        buf = config.spi_readbytes(3)
-        config.digital_write(self.cs_pin, GPIO.HIGH)#cs 1
+        buf = spi.readbytes(3)
+        digital_write(self.cs_pin, GPIO.HIGH)
         read = (buf[0]<<16) & 0xff0000
         read |= (buf[1]<<8) & 0xff00
         read |= (buf[2]) & 0xff
         
-        if (read & 0x800000) != 0:
+        if (read & 0x800000) != 0: # two's complement
             read-=1<<24
             
         return read
  
-    def ADS1256_GetChannalValue(self, Channel):
-        if(ScanMode == 0):# 0  Single-ended input  8 channel 1 Differential input  4 channe 
+    def getValue(self, Channel):
+        # 0 Single-ended input  8 channel
+        # 1 Differential input  4 channel
+        if(self.mode == 0):
             if(Channel>=8):
                 return 0
-            self.ADS1256_SetChannal(Channel)
-            self.ADS1256_WriteCmd(CMD['CMD_SYNC'])
-            # config.delay_ms(10)
-            self.ADS1256_WriteCmd(CMD['CMD_WAKEUP'])
-            # config.delay_ms(200)
-            Value = self.ADS1256_Read_ADC_Data()
+            self.setChannel(Channel)
+            self.writeCmd(CMD['SYNC'])
+            self.writeCmd(CMD['WAKEUP'])
+            v = self.readADC()
         else:
             if(Channel>=4):
                 return 0
-            self.ADS1256_SetDiffChannal(Channel)
-            self.ADS1256_WriteCmd(CMD['CMD_SYNC'])
-            # config.delay_ms(10) 
-            self.ADS1256_WriteCmd(CMD['CMD_WAKEUP'])
-            # config.delay_ms(10) 
-            Value = self.ADS1256_Read_ADC_Data()
-        return Value
-        
-    def ADS1256_GetAll(self):
-        ADC_Value = [0,0,0,0,0,0,0,0]
-        for i in range(0,8,1):
-            ADC_Value[i] = self.ADS1256_GetChannalValue(i)
-        return ADC_Value
-### END OF FILE ###
+            self.setDiffChannel(Channel)
+            self.writeCmd(CMD['SYNC'])
+            self.writeCmd(CMD['WAKEUP']) 
+            v = self.readADC()
+        return v
+
 

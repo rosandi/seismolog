@@ -166,6 +166,7 @@ function listFiles(){
 
 function plotfile(fname) {
     if(fname=='--' || fname=='' || fname=='null') return;
+    
     $.getJSON('load/'+fname, function(data){
         t=new Array(data.length);
         dt=data.tsample/data.length;
@@ -181,14 +182,16 @@ function plotfile(fname) {
         pline[1].x=t;
         pline[2].x=t;
         
-        pline[0].y=data.x;
-        pline[1].y=data.y;
-        pline[2].y=data.z;
+        pline[0].y=data.data[0];
+        pline[1].y=data.data[1];
+        pline[2].y=data.data[2];
+        
         Plotly.redraw('plotareax');
         Plotly.redraw('plotareay');
         Plotly.redraw('plotareaz');
         $('#display').html('FILE: '+fname.replace(/.json/,''));
     });
+    
 }
 
 function upload() {
@@ -208,7 +211,11 @@ function apply() {
     msrlen=getval('len');
     avg=getval('avg');
     dt=getval('dt');
+    vgain=getval('gain');
+    
+    /*
     chn=0;
+
     if(document.getElementById('ch1').checked) chn+=1;
     if(document.getElementById('ch2').checked) chn+=2;
     if(document.getElementById('ch3').checked) chn+=4;
@@ -217,10 +224,15 @@ function apply() {
         chn=1; // avoids nonsense
         document.getElementById('ch1').checked=true;
     }
+
     
     sconf='par/chanmask='+chn+':block='+msrlen+':avg='+avg+':delay='+dt+'/';
+    */
+    
+    sconf='par/gain='+vgain+':block='+msrlen+':avg='+avg+':delay='+dt+'/';
+    
     $.get(sconf,function(resp){
-        $('#longresponse').append(resp+'<br>');
+        $('#statustext').append(resp+'<br>');
     });
 }
 

@@ -28,6 +28,7 @@ print('loading '+host+':'+port)
 
 web.resize(1000,600)
 web.load(QUrl(host+':'+port))
+web.showMaximized()
 web.show()
 
 sys.exit(app.exec_())

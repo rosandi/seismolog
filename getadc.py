@@ -25,28 +25,27 @@ if vgain > 6:
     vgain=0
 
 ADC = ADS1256.ADS1256()
-ADC.ADS1256_init()
-ADC.ADS1256_SetMode(1)
-ADC.ADS1256_ConfigADC(vgain,0x82)
+ADC.initADC(vgain,0x82)
+ADC.setMode(1)
 
 vx=0
 vy=0
 vz=0
 
 for i in range(10):
-    ADC.ADS1256_GetChannalValue(0)
-    ADC.ADS1256_GetChannalValue(1)
-    ADC.ADS1256_GetChannalValue(2)
+    ADC.getValue(0)
+    ADC.getValue(1)
+    ADC.getValue(2)
 
 #time.sleep(1)
 
 for i in range(N):
     if chan.find('x')>=0:
-        vx = ADC.ADS1256_GetChannalValue(0)/float(0x7fffff)
+        vx = ADC.getValue(0)/float(0x7fffff)
     if chan.find('y')>=0:
-        vy = ADC.ADS1256_GetChannalValue(1)/float(0x7fffff)
+        vy = ADC.getValue(1)/float(0x7fffff)
     if chan.find('z')>=0:
-        vz = ADC.ADS1256_GetChannalValue(2)/float(0x7fffff)
+        vz = ADC.getValue(2)/float(0x7fffff)
 
     print ("%f %f %f"%(vx,vy,vz))
     

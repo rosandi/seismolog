@@ -22,6 +22,8 @@ port=8000
 app='yrapp.html'
 datapath='/home/seismo/data'
 progpath='/home/seismo/seismolog/'
+#datapath='./data'
+#progpath='./'
 settings='chanmask=7:block=2048:avg=1:delay=0:lat=0:lon=0:dir='+datapath
 mainprog='seismolog'
 

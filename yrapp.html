@@ -151,7 +151,7 @@
                     <th style='width:60%;text-align:center;'>input</th>
                     <th style='width:15%;text-align:center;'>value</th>
                 </tr><tr>
-                    <td class='noborder'>sample length</td>
+                    <td class='vcenter'>sample length</td>
                     <td class='noborder'>
                         <input id="len" class='rangeinput'
                         type='range' min="1024" max="65536" step="1024" value="2048" 
@@ -159,7 +159,7 @@
                     </td>
                     <td class='vdisplay' id='v_len'>2048</td>
                 </tr><tr>
-                    <td class='noborder'>over-sampling</td>
+                    <td class='vcenter'>over-sampling</td>
                     <td class='noborder'>
                         <input id="avg" class='rangeinput'
                         type='range' min="1" max="100" step="1" value="1" 
@@ -167,29 +167,44 @@
                     </td>
                     <td class='vdisplay' id='v_avg'>1</td>
                 </tr><tr>    
-                    <td class='noborder'>sampling delay</td>
+                    <td class='vcenter'>sampling delay</td>
                     <td class='noborder'>
                         <input id="dt" class='rangeinput'
                         type='range' min="0" max="50" step="10" value="0" 
                         oninput="rangechg(this.value,'v_dt');">
                     </td>
                     <td class='vdisplay' id='v_dt'>0</td>
-                </tr><tr>
+                </tr><tr>    
+                    <td class='vcenter'>gain</td>
+                    <td class='noborder'>
+                        <input id="gain" class='rangeinput'
+                        type='range' min="0" max="6" step="1" value="6" 
+                        oninput="rangechg(this.value,'v_gain');">
+                    </td>
+                    <td class='vdisplay' id='v_gain'>6</td>
+                </tr>
+
+ 
+
+                
+                <!-- SEISMOMETER always use 3 channels 
+                <tr>
                     <td class='noborder'>channels</td>
                     <td class='noborder'>
                         <input id="ch1" type='checkbox' value="ch1" checked>C1 </input>
                         <input id="ch2" type='checkbox' value="ch2" checked>C2 </input>
                         <input id="ch3" type='checkbox' value="ch3" checked>C3 </input>
                     </td> 
-                    <td class='noborder'>
-                        <button id='applybtn' class='cmdbtn'style='width:90%;' onclick='apply()'>APPLY</button> 
-                    </td>
                 </tr>
+                -->
+                
             </table>
-        
+            <div class='noborder'>
+            <button id='applybtn' class='cmdbtn' onclick='apply()'>APPLY</button> 
+            </div>
             </div>
             
-            
+            <!--
             <div id='longresponse' class='textlist' 
                  style="width:100%;height:8em;margin-top: 20px">
                 --OK--<br>
@@ -200,6 +215,7 @@
                 onclick='$("#longresponse").html("")'>
                 clear
             </button>
+            -->
             
         </div>
         
