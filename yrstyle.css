@@ -49,6 +49,22 @@ body, html {
   background-color: #777;
 }
 
+.appbtn {
+  background-color: #555;
+  color: white;
+  float: left;
+  border: 1px solid white;
+  outline: none;
+  cursor: pointer;
+  padding:20px 10px;
+  text-align: center;
+  margin-left: 5px;
+  margin-right: 5px;
+  font-size: 1.5em; 
+  font-weight: bold;
+  border-radius: 10px;
+}
+
 
 /* Style the tab content (and add height:100% for full page content) */
 .tabcontent {
@@ -56,6 +72,27 @@ body, html {
   display: none;
   padding: 10px 20px;
   overflow-y: auto;
+}
+
+.tabcontent::-webkit-scrollbar {
+    width: 2.5em;
+}
+
+.tabcontent::-webkit-scrollbar-button {
+    background: #888;
+}
+
+.tabcontent::-webkit-scrollbar-track-piece {
+    background: #888;
+}
+
+.tabcontent::-webkit-scrollbar-thumb {
+  -webkit-appearance: none;
+  border: 1px solid #000000;
+  border-radius: 8px;
+  background: red;
+  cursor: pointer;
+  box-shadow: 1px 1px 1px #000000, 0px 0px 1px #0d0d0d; 
 }
 
 .noborder {
@@ -114,12 +151,6 @@ p {
     padding-right: 20px;
     text-align: justify;
 }
-
-/*
-.rangeinput {
-    width: 100%;
-}
-*/
 
 .rangeinput {
   -webkit-appearance: none;

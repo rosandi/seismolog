@@ -211,25 +211,8 @@ function apply() {
     msrlen=getval('len');
     avg=getval('avg');
     dt=getval('dt');
-    vgain=getval('gain');
-    
-    /*
-    chn=0;
-
-    if(document.getElementById('ch1').checked) chn+=1;
-    if(document.getElementById('ch2').checked) chn+=2;
-    if(document.getElementById('ch3').checked) chn+=4;
-
-    if(chn==0) {
-        chn=1; // avoids nonsense
-        document.getElementById('ch1').checked=true;
-    }
-
-    
-    sconf='par/chanmask='+chn+':block='+msrlen+':avg='+avg+':delay='+dt+'/';
-    */
-    
-    sconf='par/gain='+vgain+':block='+msrlen+':avg='+avg+':delay='+dt+'/';
+    vgain=getval('gain');   
+    sconf='par/gain='+vgain+':block='+msrlen+':avg='+avg+':dt='+dt+'/';
     
     $.get(sconf,function(resp){
         $('#statustext').append(resp+'<br>');
@@ -237,16 +220,23 @@ function apply() {
 }
 
 // Called on load
+$.getJSON('get/settings', function(st){
+    $('#longresponse').html('Device settings:<br>'+JSON.stringify(st)+'<br>');
+    $('#len').val(st.block);
+    $('#v_len').html(st.block);
+    $('#gain').val(st.gain);
+    $('#v_gain').html(st.gain);
+    $('#avg').val(st.avg);
+    $('#v_avg').html(st.avg);
+    $('#dt').val(st.dt);
+    $('#v_dt').html(st.dt);
+});
+
 $.getJSON('status', function(s) {
+   
     if(s.status) {
         $('#runbtn').css({'background-color':'red'});
         $('#runbtn').html('STOP');
-        $.getJSON('get/settings', function(st){
-            $('#longresponse').html('Device settings:<br>'+JSON.stringify(st)+'<br>');
-            $('#len').val(st.block);
-            $('#v_len').html(st.block);
-            // ... and here comes other settings
-        });
     } else {
         dd=new Date();
         // Javascript starts month at 0 (January), funny heh?

@@ -20,14 +20,16 @@ version='1.0 (c) 2021, rosandi'
 host=''
 port=8000
 app='yrapp.html'
-datapath='/home/seismo/data'
+datapath='/home/seismo/data/'
 progpath='/home/seismo/seismolog/'
-#datapath='./data'
-#progpath='./'
-settings='chanmask=7:block=2048:avg=1:delay=0:lat=0:lon=0:dir='+datapath
-mainprog='seismolog'
 
+# FIXME!
+settings='chanmask=7:block=2048:avg=1:dt=0:lat=0:lon=0:dir='+datapath
+
+mainprog='seismolog'
+parfile='config.txt'
 sensprog=None
+
 
 for arg in sys.argv:
     if arg.find('host=') == 0:
@@ -38,6 +40,19 @@ for arg in sys.argv:
         datapath=arg.replace('dir=','')
     if arg.find('sensor=') == 0:
         sensprog=arg.replace('sensor=','')
+    if arg.find('path=') == 0:
+        progpath=arg.replace('path=','')
+    if arg.find('dpath=') == 0:
+        datapath=arg.replace('dpath=','')
+        
+#try:
+with open(progpath+parfile) as f:
+    settings=f.read().replace('\n',':')
+
+print(settings)
+
+#except:
+#    pass
 
 ret=os.system('mkdir -p {}'.format(datapath))
 
@@ -120,7 +135,8 @@ class OtherApiHandler(BaseHTTPRequestHandler):
                 self.response(htcontent,'text/css')
                 print('sent css: {}'.format(htfile))
             except:
-                self.response("/* file not found {} */".format(htfile))        
+                self.response("/* file not found {} */".format(htfile))     
+                   
         elif htfile.find('.png',len(htfile)-4)>0:
             print('image:',htfile)
             self.header('image/png')
@@ -205,9 +221,15 @@ class OtherApiHandler(BaseHTTPRequestHandler):
         elif htfile.find('par ') == 0:
             settings=htfile.replace('par ','')
             print('parameter request: '+settings)
-            s='Logging parameters:<br>'+settings
+
             if settings.find('dir=') < 0:
                 settings+=':dir='+datapath
+            
+            # save configuration
+            with open(progpath+parfile,'w') as f:
+                f.write(settings.replace(':','\n')+'\n')
+                
+            s='Logging parameters:<br>'+settings
             self.header('text/plain')
             self.wfile.write(bytes(s,'utf-8'))
         
@@ -239,6 +261,9 @@ class OtherApiHandler(BaseHTTPRequestHandler):
                     rs=settings.split(':')
                     js=''
                     for ss in rs:
+                        if ss == '':
+                            continue
+                            
                         ss=ss.split('=')
                         js+=' "'+ss[0]+'":'+ss[1]
                     

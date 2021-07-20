@@ -107,7 +107,7 @@ if __name__ == "__main__":
             filename=arg.replace('file=','')
         if arg.find('gain=') == 0:
             devgain=int(arg.replace('gain=',''))
-        if arg.find('delay=') == 0:
+        if arg.find('dt=') == 0:
             dly=float(arg.replace('delay=',''))
         if arg.find('avg=') == 0: # oversampling
             avg=int(arg.replace('avg=',''))

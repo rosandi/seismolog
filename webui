@@ -12,6 +12,7 @@ from PyQt5.QtWidgets import QApplication, QWidget, QMainWindow
 
 host='http://localhost'
 port='8000'
+winmode='max'
 
 for arg in sys.argv:
     if arg.find('host=') == 0:
@@ -20,6 +21,8 @@ for arg in sys.argv:
             host='http://'+host
     if arg.find('port=') == 0:
         port=arg.replace('port=','')
+    if arg.find('mode=') == 0:
+        winmode=arg.replace('mode=','')
 
 app = QApplication(sys.argv)
 web = QWebView()
@@ -28,7 +31,10 @@ print('loading '+host+':'+port)
 
 web.resize(1000,600)
 web.load(QUrl(host+':'+port))
-web.showMaximized()
+
+if winmode == 'max':
+    web.showMaximized()
+
 web.show()
 
 sys.exit(app.exec_())

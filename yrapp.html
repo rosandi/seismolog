@@ -89,7 +89,7 @@
             style='width:100%;height:15em;margin-top: 20px'>
                 --OK--<br> 
             </div>
-            <button id='statclr' class='cmdbtn' 
+            <button id='statclr' class='appbtn' 
                 style='margin-top: 5px'
                 onclick='$("#statustext").html("")'>
                 clear
@@ -128,10 +128,10 @@
                     </div>
                     
                     <div style='padding-top:10px'>
-                        <button class='cmdbtn' onclick='listFiles()'>
+                        <button class='appbtn' onclick='listFiles()'>
                             REFRESH LIST
                         </button><br>
-                        <button class='cmdbtn' onclick='upload()'>
+                        <button class='appbtn' onclick='upload()'>
                             SEND FILE
                         </button>
                     </div>
@@ -183,40 +183,15 @@
                     </td>
                     <td class='vdisplay' id='v_gain'>6</td>
                 </tr>
-
- 
-
-                
-                <!-- SEISMOMETER always use 3 channels 
-                <tr>
-                    <td class='noborder'>channels</td>
-                    <td class='noborder'>
-                        <input id="ch1" type='checkbox' value="ch1" checked>C1 </input>
-                        <input id="ch2" type='checkbox' value="ch2" checked>C2 </input>
-                        <input id="ch3" type='checkbox' value="ch3" checked>C3 </input>
-                    </td> 
-                </tr>
-                -->
-                
+               
             </table>
-            <div class='noborder'>
-            <button id='applybtn' class='cmdbtn' onclick='apply()'>APPLY</button> 
+            <div class='noborder' >
+            <button id='applybtn' class='appbtn' 
+                    style='margin-top:20px;position:absolute;right:50px;'
+                    onclick='apply()'>APPLY</button> 
             </div>
             </div>
-            
-            <!--
-            <div id='longresponse' class='textlist' 
-                 style="width:100%;height:8em;margin-top: 20px">
-                --OK--<br>
-            </div>
-            
-            <button id='respclr' class='cmdbtn' 
-                style='margin-top: 5px'
-                onclick='$("#longresponse").html("")'>
-                clear
-            </button>
-            -->
-            
+                       
         </div>
         
         <!-- INFORMATION TAB -->
@@ -225,20 +200,7 @@
     </td>
 </table>
 
-<script> 
-
-/*
-function getLocation() {
-  if (navigator.geolocation) {
-    navigator.geolocation.getCurrentPosition(function(pos){
-        $('#plat').html(pos.coords.latitude.toFixed(5));
-        $('#plon').html(pos.coords.longitude.toFixed(5));
-    });
-  } else { 
-    console.log("Geolocation is not supported");
-  }
-}
-*/
+<script>
 
 function opentab(tabid) {
   document.getElementById(tabid).click();
