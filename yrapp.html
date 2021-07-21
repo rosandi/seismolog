@@ -74,19 +74,13 @@
                         onclick='togglerun()'>
                         START
                     </button>
-                    
-                    <button id='byebtn' class='cmdbtn' 
-                        style='background-color: red;padding:20px 10px;'
-                        onclick='shutdown()'>
-                        SHUTDOWN
-                    </button>
                 
                 </div>
                 </td></tr>
             </table>
             
             <div id='statustext' class='textlist' 
-            style='width:100%;height:15em;margin-top: 20px'>
+            style='width:100%;height:24em;margin-top: 20px'>
                 --OK--<br> 
             </div>
             <button id='statclr' class='appbtn' 
@@ -94,13 +88,19 @@
                 onclick='$("#statustext").html("")'>
                 clear
             </button>
-
+            <button id='byebtn' class='cmdbtn' 
+                style='background-color: red; padding:20px 10px; margin-top: 5px;position:absolute;right:50px;'
+                onclick='shutdown()'>
+                SHUTDOWN
+            </button>
         </div>
    
         <!-- PLOT TAB -->
         <div id="dataplot" class="tabcontent">
             <table>
-                <tr><td class='noborder' style='text-align:center;'>
+                <tr>
+                    
+                <td class='noborder' style='text-align:center;'>
                     <div id='display'> FILE: -- </div>
                     <table>
                     <tr><td class='noborder'>
@@ -113,11 +113,13 @@
                         <div id='plotareaz'></div>
                     </td></tr>
                     </table>
-                </td><td class='noborder'>
+                </td>
+                
+                <td class='noborder'>
                     <div style='text-align:center;padding-bottom:20px' >LOG FILES</div>
                     <div class='textlist'
                     style='margin-left:auto;margin-right:auto;
-                           width:12em;height:19em;background-color:#229954'>
+                           width:14em;height:19em;background-color:#229954'>
                     
                     <table id='filelist'>
                         <tr>
@@ -148,32 +150,9 @@
                     <th style='width:25%;text-align:center;'>parameter</th>
                     <th style='width:60%;text-align:center;'>input</th>
                     <th style='width:15%;text-align:center;'>value</th>
-                </tr><tr>
-                    <td class='vcenter'>sample length</td>
-                    <td class='noborder'>
-                        <input id="len" class='rangeinput'
-                        type='range' min="1024" max="65536" step="1024" value="2048" 
-                        oninput="rangechg(this.value,'v_len');">
-                    </td>
-                    <td class='vdisplay' id='v_len'>2048</td>
-                </tr><tr>
-                    <td class='vcenter'>over-sampling</td>
-                    <td class='noborder'>
-                        <input id="avg" class='rangeinput'
-                        type='range' min="1" max="100" step="1" value="1" 
-                        oninput="rangechg(this.value,'v_avg');">
-                    </td>
-                    <td class='vdisplay' id='v_avg'>1</td>
-                </tr><tr>    
-                    <td class='vcenter'>sampling delay</td>
-                    <td class='noborder'>
-                        <input id="dt" class='rangeinput'
-                        type='range' min="0" max="50" step="10" value="0" 
-                        oninput="rangechg(this.value,'v_dt');">
-                    </td>
-                    <td class='vdisplay' id='v_dt'>0</td>
-                </tr><tr>    
-                    <td class='vcenter'>gain</td>
+                </tr>
+                <tr>    
+                    <td class='vcenter'>GAIN</td>
                     <td class='noborder'>
                         <input id="gain" class='rangeinput'
                         type='range' min="0" max="6" step="1" value="6" 
@@ -181,7 +160,43 @@
                     </td>
                     <td class='vdisplay' id='v_gain'>6</td>
                 </tr>
-               
+
+                <tr>
+                    <td class='vcenter'>DATA LENGTH</td>
+                    <td class='noborder'>
+                        <input id="len" class='rangeinput'
+                        type='range' min="1024" max="65536" step="1024" value="2048" 
+                        oninput="rangechg(this.value,'v_len');">
+                    </td>
+                    <td class='vdisplay' id='v_len'>2048</td>
+                </tr><tr>
+                    <td class='vcenter'>OVERSAMPLE</td>
+                    <td class='noborder'>
+                        <input id="avg" class='rangeinput'
+                        type='range' min="1" max="100" step="1" value="1" 
+                        oninput="rangechg(this.value,'v_avg');">
+                    </td>
+                    <td class='vdisplay' id='v_avg'>1</td>
+                </tr><tr>    
+                    <td class='vcenter'>SAMPLE PERIOD</td>
+                    <td class='noborder'>
+                        <input id="dt" class='rangeinput'
+                        type='range' min="0" max="50" step="10" value="0" 
+                        oninput="rangechg(this.value,'v_dt');">
+                    </td>
+                    <td class='vdisplay' id='v_dt'>0</td>
+                </tr>
+                <!-- create system settings tab!
+                <tr>    
+                    <td class='vcenter'>SYSTEM TIME</td>
+                    <td class='noborder'>
+                        <input id="sdate" class='rangeinput'
+                        type='datetime-local' 
+                        oninput="rangechg(this.value,'v_sdate');">
+                    </td>
+                    <td class='vdisplay' id='v_sdate'>00</td>
+                </tr>
+               -->
             </table>
             <div class='noborder' >
             <button id='applybtn' class='appbtn' 
