@@ -1,0 +1,5 @@
+gain=1
+block=3072
+avg=1
+dt=0
+dir=./

@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GF-Instruments</title>
+<link rel="stylesheet" href="yrstyle.css">
+
+
+</head>
+<body>
+    <div class='noborder'>
+    <table>
+       <tr><td class='noborder'>
+            <canvas id='plotareax' width='480' height='160' class='plotcvs'></canvas>
+        </td></tr>
+        <tr><td class='noborder' >
+            <canvas id='plotareay' width='480' height='160' class='plotcvs'></canvas>
+        </td></tr>
+        <tr><td class='noborder' >
+            <canvas id='plotareaz' width='480' height='160' class='plotcvs'></canvas>
+        </td></tr>
+    </table>
+    </div>
+
+<script>
+const ww= window.innerWidth;
+const wh= window.innerHeight;
+
+var msrlen=100;
+var avg=10;
+var dt=1;
+var chn=1;
+var x=[], y=[], z=[];
+var mx=0, my=0, mz=0; // mean value
+
+var devhost=''; 
+// for in-device web-interface
+//var devhost='http://seismolog.local/'; // slash is necessary!
+
+var firstload=true;
+
+function getJSON(surl, func) {
+	var request = new XMLHttpRequest();
+	request.open('GET', surl, true);
+
+	request.onload = function() {
+	  if (this.status >= 200 && this.status < 400) {
+		// console.log(this.response);
+		var data = JSON.parse(this.response);
+		func(data);
+	  } else {
+		console.log("not found "+surl);
+	  }
+	};
+
+	request.send();
+}
+
+function getText(surl, func) {
+	var request = new XMLHttpRequest();
+	request.open('GET', surl, true);
+
+	request.onload = function() {
+	  if (this.status >= 200 && this.status < 400) {
+		var data=this.response;
+		func(data);
+	  } else {
+		console.log("not found "+surl);
+	  }
+	};
+	
+	request.send();
+}	
+
+function getval(elid) {
+    return document.getElementById(elid).value;
+}
+
+function setval(elid,val) {
+    document.getElementById(elid).value=val;
+}
+
+function setText(id, text) {
+	document.getElementById(id).innerHTML=text;
+}
+
+function appendText(id, text) {
+	document.getElementById(id).innerHTML+=text;
+}
+
+function setbgColor(id, clr) {
+	document.getElementById(id).style.backgroundColor=clr;
+}
+
+//----- SECTION: PLOTTER ------
+
+var canvasx = document.getElementById('plotareax');
+var ctx = canvasx.getContext('2d');
+
+var canvasy = document.getElementById('plotareay');
+var cty = canvasy.getContext('2d');
+
+var canvasz = document.getElementById('plotareaz');
+var ctz = canvasz.getContext('2d');
+
+var axesx = {
+	x0: 0,
+	y0: 0.5 + 0.5 * canvasx.height,
+	scale: 2,
+	doNegativeX: false
+};
+
+var axesy = {
+	x0: 0,
+	y0: 0.5 + 0.5 * canvasy.height,
+	scale: 2,
+	doNegativeX: false
+};
+
+var axesz = {
+	x0: 0,
+	y0: 0.5 + 0.5 * canvasz.height,
+	scale: 2,
+	doNegativeX: false
+};
+
+function showAxes(ctx, axes) {
+	var x0 = axes.x0,
+		w = ctx.canvas.width;
+	var y0 = axes.y0,
+		h = ctx.canvas.height;
+	var xmin = axes.doNegativeX ? 0 : x0;
+	ctx.beginPath();
+	ctx.lineWidth = 1;
+	ctx.strokeStyle = 'black';
+	ctx.moveTo(xmin, y0);
+	ctx.lineTo(w, y0);		
+	ctx.stroke();
+}
+
+function graph(ctx, axes, data, m) {
+	var xx, yy,
+		x0 = axes.x0,
+		y0 = axes.y0,
+		scale = axes.scale;
+	var w = ctx.canvas.width;
+	var xscl = (w-x0)/data.length;
+	ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+	showAxes(ctx, axes);			
+	ctx.beginPath();
+	ctx.lineWidth = 1;
+	ctx.strokeStyle = 'red';
+
+	for (var i = 0; i < data.length; i++) {
+		xx = i*xscl;
+		yy = scale * (data[i]-m);
+		if (i == 0) ctx.moveTo(x0 + xx, y0 - yy);
+		else ctx.lineTo(x0 + xx, y0 - yy);
+	}
+	ctx.stroke();
+}
+
+// ----- END SECTION -------
+
+function plotfile(fname) {
+	
+    if(fname=='--' || fname=='' || fname=='null') return;
+    getJSON(devhost+'load?data='+fname, function(data){
+        var t=new Array(data.length);
+        var dt=data.tsample/data.length;
+        
+        document.getElementById('xzoom').value=0;
+        document.getElementById('xpan').max=data.length;
+        document.getElementById('xpan').step=1;
+        document.getElementById('xpan').value=0;
+        
+        x=[], y=[], z=[];
+		
+        for (i=0;i<data.length;i++) {
+			tx=data.data[i][0];
+			ty=data.data[i][1];
+			tz=data.data[i][2];
+			mx+=tx; my+=ty; mz+=tz;
+			x.push(tx);
+			y.push(ty);
+			z.push(tz);
+        }
+        
+        mx/=data.length;
+        my/=data.length;
+        mz/=data.length;
+        
+        graph(ctx, axesx, x, mx);
+        graph(cty, axesy, y, my);
+        graph(ctz, axesz, z, mz);
+
+        setText('display', 'FILE: '+fname.replace(/.json/,''));
+    });
+
+}
+
+function xzoom() {
+    var p=parseFloat(document.getElementById('yscale').value);
+    var v=parseFloat(document.getElementById('xzoom').value);
+    var ofs=parseInt(document.getElementById('xpan').value);
+    var g=Math.pow(10,p);
+    var d=Math.round(x.length*Math.pow(2,v));
+    
+    var ax=[], ay=[], az=[];
+    
+    for (i=ofs;i<(ofs+d);i++) {
+        if(i>x.length) break;
+        ax.push((x[i]-mx)*g+mx);
+        ay.push((y[i]-my)*g+my);
+        az.push((z[i]-mz)*g+mz);
+    }
+    
+    graph(ctx, axesx, ax, mx);
+    graph(cty, axesy, ay, my);
+    graph(ctz, axesz, az, mz);    
+}
+
+ctx.imageSmoothingEnabled = false;
+cty.imageSmoothingEnabled = false;
+ctz.imageSmoothingEnabled = false;
+
+showAxes(ctx,axesx);
+showAxes(cty,axesy);
+showAxes(ctz,axesz);
+
+</script>
+
+</body>
+</html>

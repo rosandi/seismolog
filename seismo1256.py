@@ -53,9 +53,42 @@ def readadc(n=1, oversample=1, delay=0.0, presample=0):
         vals.append(x/oversample/float(0x7fffff))
         vals.append(y/oversample/float(0x7fffff))
         vals.append(z/oversample/float(0x7fffff))
+        
+        if delay>0: # faster, maybe...
+            time.sleep(delay)
 
-    time.sleep(delay)
+    tend=time.time()
+    return tend-tstart,vals
+    
+def readadc_t(ts, oversample=1, delay=0.0, presample=0):
+    
+    vals=[]
+    tstart=time.time()
+    tend=tstart+ts;
+    
+    # presampling: throw out bad data
+    for i in range(presample):
+        adc.getValue(0)
+        adc.getValue(1)
+        adc.getValue(2)
+    
+    while(time.time() < tend):
+        x=0
+        y=0
+        z=0
 
+        for i in range(oversample):
+            x+=adc.getValue(0)
+            y+=adc.getValue(1)
+            z+=adc.getValue(2)
+
+        vals.append(x/oversample/float(0x7fffff))
+        vals.append(y/oversample/float(0x7fffff))
+        vals.append(z/oversample/float(0x7fffff))
+
+        if delay>0: # faster, maybe...
+            time.sleep(delay)
+        
     tend=time.time()
     return tend-tstart,vals
 
@@ -79,12 +112,14 @@ def deviceCommand(scmd):
 def directMeasure(n=1):
     return readadc(n)
     
+def calibrate():
+    adc.calibrate()
+    
 def clearQueue():
     pass
 
 def deviceClose():
     adc.sleep()
-    pass
 
 ###### MAIN PROGRAM: LOGGING ######
 
@@ -94,7 +129,7 @@ if __name__ == "__main__":
     import json
     import numpy as np
     
-    blocklen=100
+    blocklen=100 # deprecated: use stime
     dly=0
     avg=1 # oversampling average
     datapath='.'
@@ -103,6 +138,7 @@ if __name__ == "__main__":
     fileformat='json'
     major='column'
     presample=0
+    sampletime=0
     
     for arg in sys.argv:
         arg=arg.strip()
@@ -110,11 +146,13 @@ if __name__ == "__main__":
         if arg.find('block=') == 0:
             blocklen=int(arg.replace('block=',''))
             print('block length: %d'%(blocklen), file=sys.stderr)
+        if arg.find('stime=') == 0:# sample time in second
+            sampletime=int((arg.replace('stime=',''))
         if arg.find('file=') == 0:
             filename=arg.replace('file=','')
         if arg.find('gain=') == 0:
             devgain=int(arg.replace('gain=',''))
-        if arg.find('dt=') == 0:
+        if arg.find('dt=') == 0: # sample period (minus oversampling time)
             dly=float(arg.replace('dt=',''))
         if arg.find('avg=') == 0: # oversampling
             avg=int(arg.replace('avg=',''))
@@ -134,7 +172,11 @@ if __name__ == "__main__":
     deviceInit()
     ad=np.zeros(blocklen*3)  
     tstart=time.time()
-    t,d=readadc(blocklen,avg,dly,presample)
+    
+    if(sampletime>0):
+        t,d=readadc_t(sampletime,avg,dly,presample)
+    else:
+        t,d=readadc(blocklen,avg,dly,presample)
         
     if fileformat == 'text':
         filename=filename+'.txt'

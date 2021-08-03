@@ -162,13 +162,13 @@
                 </tr>
 
                 <tr>
-                    <td class='vcenter'>DATA LENGTH</td>
+                    <td class='vcenter'>SAMPLING TIME</td>
                     <td class='noborder'>
                         <input id="len" class='rangeinput'
-                        type='range' min="1024" max="65536" step="1024" value="2048" 
+                        type='range' min="10" max="3600" step="10" value="60" 
                         oninput="rangechg(this.value,'v_len');">
                     </td>
-                    <td class='vdisplay' id='v_len'>2048</td>
+                    <td class='vdisplay' id='v_len'>60</td>
                 </tr><tr>
                     <td class='vcenter'>OVERSAMPLE</td>
                     <td class='noborder'>
@@ -177,7 +177,7 @@
                         oninput="rangechg(this.value,'v_avg');">
                     </td>
                     <td class='vdisplay' id='v_avg'>1</td>
-                </tr><tr>    
+                </tr><tr>
                     <td class='vcenter'>SAMPLE PERIOD</td>
                     <td class='noborder'>
                         <input id="dt" class='rangeinput'

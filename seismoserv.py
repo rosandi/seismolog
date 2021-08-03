@@ -24,8 +24,9 @@ datapath='/home/seismo/data/'
 progpath='/home/seismo/seismolog/'
 
 # FIXME!
-settings='block=2048:avg=1:dt=0:lat=0:lon=0:dir='+datapath
+settings='stime=60:avg=1:dt=0:lat=0:lon=0:dir='+datapath
 
+# this is a wrapper program that calls the actual logging program (seismo1256.py)
 mainprog='seismolog'
 parfile='config.txt'
 sensprog=None
@@ -161,6 +162,7 @@ class OtherApiHandler(BaseHTTPRequestHandler):
         elif htfile == 'start':
             prg=progpath+mainprog+' '+settings.replace(':',' ')
             if not checkstatus():
+                # send program in background
                 ret=os.system('nohup {} 2>/dev/null &'.format(prg))
                 print('running logging daemon ',prg)
                 

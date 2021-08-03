@@ -212,7 +212,7 @@ function apply() {
     avg=getval('avg');
     dt=getval('dt');
     vgain=getval('gain');   
-    sconf='par/gain='+vgain+':block='+msrlen+':avg='+avg+':dt='+dt+'/';
+    sconf='par/gain='+vgain+':stime='+msrlen+':avg='+avg+':dt='+dt+'/';
     $('#applybtn').css({'background-color':'#555'});
     setdirty=false;
     $.get(sconf,function(resp){
@@ -222,9 +222,9 @@ function apply() {
 
 // Called on load
 $.getJSON('get/settings', function(st){
-    $('#longresponse').html('Device settings:<br>'+JSON.stringify(st)+'<br>');
-    $('#len').val(st.block);
-    $('#v_len').html(st.block);
+    $('#statustexte').html('device settings:<br>'+JSON.stringify(st)+'<br>');
+    $('#len').val(st.stime);
+    $('#v_len').html(st.stime);
     $('#gain').val(st.gain);
     $('#v_gain').html(st.gain);
     $('#avg').val(st.avg);

@@ -212,4 +212,5 @@ class ADS1256:
             v = self.readADC()
         return v
 
-
+    def calibrate():
+        pass
