@@ -332,7 +332,7 @@ class SeismoWin(QMainWindow):
         self.setGeometry(0,0,winx,winy)
         self.setWindowTitle("SEISMO-LOG")
         # self.setWindowIcon(QtGui.QIcon("pngfile");
-        
+        self.logtrd=None
         self.createWin()
         
     def clearAttr(self):
@@ -394,13 +394,14 @@ class SeismoWin(QMainWindow):
         self.logtrd.start() 
     
     def stopLogThread(self):
-        # maybe better than this?
-        adc.logON.set() # release event wait()
-        adc.daemonRun.clear() 
+        adc.stop()
     
     def closeEvent(self,ev):
         print('close application')
         
+        if self.logtrd == None:
+            return
+            
         adc.logON.clear()
         adc.daemonRun.clear()
         

@@ -161,8 +161,14 @@ def start(cfg):
             break
             
         print('logging starts')
-        t=time()+twait
+        t=time()
         logone(cfg)
+        t=twait-(time()-t)
+        
+        if t<0:
+            t=0
+        
+        print('wait for %0.2f seconds'%(t))
         
         logON.clear()
         tm=Timer(twait, lambda: logON.set())
@@ -172,6 +178,9 @@ def start(cfg):
     deviceClose()
     print('log daemon stop')
 
+def stop():
+    logON.set() # release event wait()
+    daemonRun.clear() 
 
 if __name__ == "__main__":
     cfg = {
