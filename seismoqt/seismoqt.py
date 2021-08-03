@@ -33,6 +33,7 @@ configfile='/home/seismo/config.json'
 docfile='file:///home/seismo/doc/about-id.html'
 dummy=False
 dpath=None
+stayon=False
 
 for arg in sys.argv:
     if arg.find('mode=') == 0:
@@ -46,6 +47,9 @@ for arg in sys.argv:
         docfile=arg.replace('doc=','')
     if arg.find('dpath=') == 0:
         dpath=arg.replace('dpath=','')
+    if arg.find('shutdown=') == 0:
+        if arg.replace('shutdown=','') == 'no':
+            stayon=True
 
 if dummy:
     import adcdummy as adc
@@ -187,8 +191,7 @@ class controlTab(QFrame):
             
     def device_shutdown(self):
         self.devstat.setText(' Going down\n GOOD BYE')
-        time.sleep(5)
-        os.system('sudo poweroff')
+        QTimer().singleShot(5000, lambda: seismoGUI.close())
             
     def create(self):
         self.devstat=statusText(self, [10,100], [760,400])
@@ -388,11 +391,23 @@ class SeismoWin(QMainWindow):
         self.show()
     
     def closeEvent(self,ev):
+        print('close application')
+        adc.logON.clear()
         adc.daemonStop.set()
+        
+        while adc.logBusy.isSet():
+            time.sleep(1)
+        
         adc.logON.set()  # release event wait()
         self.logtrd.join()       
-
+ 
 ####### MAIN ########
 seismoapp=QApplication(sys.argv)
 seismoGUI=SeismoWin()
-sys.exit(seismoapp.exec())
+seismoapp.exec()
+
+if not stayon:
+    print('Power down')
+    os.system('sudo poweroff')
+else:
+    print('Seismo machine stays alive')

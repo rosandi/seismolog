@@ -67,8 +67,14 @@ class plotDialog(QDialog):
         plotScroller(self, 'ZOOM', (5,140,350,50), lambda v:self.change_zoom(v), (-100,0,1)).setValue(self.plotter.zoom)
         plotScroller(self, 'XPAN', (5,205,350,50), lambda v:self.change_xpan(v)).setValue(self.plotter.xpan)
         
+        c=QPushButton('RESET', self)
+        c.move(60,270)
+        c.resize(120,60)
+        c.setStyleSheet(css['button'])
+        c.clicked.connect(lambda: self.plotter.resetplot())
+
         b=QPushButton('CLOSE', self)
-        b.move(160,270)
+        b.move(220,270)
         b.resize(120,60)
         b.setStyleSheet(css['button'])
         b.clicked.connect(lambda: self.close())
@@ -143,6 +149,13 @@ class plotter(QFrame):
         
         self.data=data
         self.repaint()
+        
+    def resetplot(self):
+        self.scale=40 # logaritmic FIXME: silent amplitude
+        self.zoom=0 # logaritmic
+        self.xpan=0
+        self.yofs=0
+        self.repaint()        
 
     def mousePressEvent(self,ev):
         print('create dialog here...')

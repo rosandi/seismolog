@@ -16,7 +16,7 @@ import RPi.GPIO as GPIO
 import sys
 import json
 import numpy as np
-from threading import Thread,Event
+from threading import Thread,Event, Timer
 from queue import Queue
 
 chn=7
@@ -166,18 +166,22 @@ def start(cfg):
     
     # FIXME! this makes CPU too busy doing nothing
     while not daemonStop.isSet():
-        # user log.ON.wait() ...
-        if logON.is_set():
-            print('logging starts')
-            t=time()+twait
-            logone(cfg)
-            sleep(1)
+        
+        startlog = logON.wait()        
+
+        if daemonStop.isSet():
+            break
             
-            while time()<twait:
-                if not logON.isSet():
-                    break
+        print('logging starts')
+        t=time()+twait
+        logone(cfg)
+        logON.clear()
+        
+        # untested. maybe need to be canceled on quit
+        tm=Timer(twait, lambda: logON.set()).start()
     
     print('stopping log daemon')
+    
     deviceClose()
 
 

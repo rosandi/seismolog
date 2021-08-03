@@ -1,1 +1,1 @@
-./seismoqt.py mode=n dummy=true config=./config.json dpath=./data/
+./seismoqt.py mode=n dummy=true config=./config.json dpath=./data/ shutdown=no
