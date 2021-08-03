@@ -90,7 +90,8 @@ class cmdButton(QPushButton):
         super(cmdButton,self).__init__(text,master)
         self.resize(sz[0],sz[1])
         self.move(pos[0],pos[1])
-        self.setStyleSheet(css['cmdbutton'])
+        self.setObjectName('cmdButton')
+        self.setStyleSheet(css['button'])
         if (act != None):
             self.clicked.connect(act)
 
@@ -107,7 +108,7 @@ class scroller(QScrollBar):
         super(scroller,self).__init__(Qt.Horizontal,master)
         self.resize(geo[2],geo[3])
         self.move(geo[0],geo[1])
-        self.setStyleSheet(css['scroll'])
+        self.setStyleSheet(css['main'])
         self.setMinimum(lim[0])
         self.setMaximum(lim[1])
         self.setSingleStep(lim[2])
@@ -122,9 +123,10 @@ class dataList(QListWidget):
         self.datapath=datapath
         self.resize(geo[2],geo[3])
         self.move(geo[0],geo[1])
-        self.setStyleSheet(css['list'])
         self.itemClicked.connect(self.plot)
-    
+        self.setStyleSheet(css['main'])
+        self.verticalScrollBar().setStyleSheet('width: 30px;')
+            
     def plot(self, item):
         self.master.plot(self.datapath+item.text()+'.json')
         
@@ -210,6 +212,8 @@ class dataTab(QFrame):
         self.move(pos[0],pos[1])
         self.resize(winx-220,600)
         self.setStyleSheet('background-color: green;')
+        #self.setObjectName('dataTab')
+        #self.setStyleSheet(css['main'])
         
         self.create()
 
