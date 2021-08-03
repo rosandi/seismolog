@@ -62,7 +62,7 @@ def readadc(ts, oversample=1, delay=0.0, presample=0):
             y+=adc.getValue(1)
             z+=adc.getValue(2)
             
-            if not logON.isSet():
+            if not daemonRun.isSet():
                 return 0,[0,],0
 
         vals.append(x/oversample/float(0x7fffff))
@@ -107,7 +107,7 @@ def logone(cfg, filename=None):
     
     t,d,blocklen=readadc(sampletime,avg,dly,presample)
     
-    if not logON.isSet():
+    if not daemonRun.isSet():
         print('logging canceled')
         logBusy.clear()
         return
@@ -149,6 +149,8 @@ def start(cfg):
     deviceInit(cfg['gain'],rate)
     twait=cfg['every']
     print('starting log daemon')
+    daemonRun.set()
+    logON.set()
     
     # FIXME! this makes CPU too busy doing nothing
     while daemonRun.isSet():
@@ -161,14 +163,14 @@ def start(cfg):
         print('logging starts')
         t=time()+twait
         logone(cfg)
-        logON.clear()
         
-        # untested. maybe need to be canceled on quit
-        tm=Timer(twait, lambda: logON.set()).start()
+        logON.clear()
+        tm=Timer(twait, lambda: logON.set())
+        tm.start()
     
-    print('stopping log daemon')
-    
+    tm.cancel()
     deviceClose()
+    print('log daemon stop')
 
 
 if __name__ == "__main__":

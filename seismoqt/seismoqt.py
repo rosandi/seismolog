@@ -67,7 +67,7 @@ except: # default
         'tsample': 30,
         'dt': 0,
         'oversample': 1,
-        'every': 60,
+        'every': 0,
         'datapath': '/home/seismo/data/',
         'format': 'column'
     }
@@ -159,6 +159,7 @@ class label(QLabel):
 class controlTab(QFrame):
     def __init__(self, master, pos):
         super(controlTab, self).__init__(master)
+        self.master=master
         self.move(pos[0],pos[1])
         self.resize(winx-220,600)
         self.setStyleSheet('background-color: gray;')
@@ -174,15 +175,15 @@ class controlTab(QFrame):
         self.devstat.setText(s)
     
     def startLog(self):
-        if not adc.logON.isSet():
-            adc.logON.set()
+        if not adc.daemonRun.isSet():
+            self.master.startLogThread()
             s=self.devstat.toPlainText()
             s+='start logging at '+datetime.now().strftime("%m/%d/%Y, %H:%M:%S")+'\n'
             self.devstat.setText(s)
             self.startBtn.setText('STOP')
             self.startBtn.setStyleSheet(css['actbutton'])
         else:
-            adc.logON.clear()
+            self.master.stopLogThread()
             s=self.devstat.toPlainText()
             s+='stop logging at '+datetime.now().strftime("%m/%d/%Y, %H:%M:%S")+'\n'
             self.devstat.setText(s)
@@ -334,9 +335,6 @@ class SeismoWin(QMainWindow):
         
         self.createWin()
         
-        self.logtrd=Thread(target=adc.start,args=(adc_settings,))
-        self.logtrd.start()    
-        
     def clearAttr(self):
         self.cbut.setStyleSheet(css['button'])
         self.dbut.setStyleSheet(css['button'])
@@ -390,17 +388,29 @@ class SeismoWin(QMainWindow):
         
         self.show()
     
+    def startLogThread(self):
+        # maybe reuseable??
+        self.logtrd=Thread(target=adc.start,args=(adc_settings,))
+        self.logtrd.start() 
+    
+    def stopLogThread(self):
+        # maybe better than this?
+        adc.logON.set() # release event wait()
+        adc.daemonRun.clear() 
+    
     def closeEvent(self,ev):
         print('close application')
         
         adc.logON.clear()
-        adc.daemonStop.set()
+        adc.daemonRun.clear()
         
         while adc.logBusy.isSet():
             time.sleep(1)
         
         adc.logON.set()  # release event wait()
-        self.logtrd.join()       
+        
+        if self.logtrd.is_alive():
+            self.logtrd.join()       
  
 ####### MAIN ########
 seismoapp=QApplication(sys.argv)
