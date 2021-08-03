@@ -392,6 +392,7 @@ class SeismoWin(QMainWindow):
     
     def closeEvent(self,ev):
         print('close application')
+        
         adc.logON.clear()
         adc.daemonStop.set()
         

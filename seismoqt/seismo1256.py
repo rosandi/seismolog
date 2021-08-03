@@ -19,25 +19,26 @@ import numpy as np
 from threading import Thread,Event, Timer
 from queue import Queue
 
-chn=7
 devgain=6
-devchan=3
 adc=None
-trigpin=None
-rate=DRATE_E['1000SPS']
+deviceReady=False
+
+# rate>1000SPS prone to noise!
+rate=DRATE_E['500SPS']
 
 logON=Event() # initiate: clear
-daemonStop=Event()
+daemonRun=Event()
 logBusy=Event()
 
 def channelnum(cmask=None,nchannel=None):
     return 3, [0,1,2]
 
-def deviceInit():
+def deviceInit(gain,rate):
     global devgain, adc
     adc=ADS1256()
-    adc.initADC(devgain,rate)
+    adc.initADC(gain,rate)
     adc.setMode(1) # differential input
+    deviceReady=True
     
 def readadc(ts, oversample=1, delay=0.0, presample=0):
     
@@ -74,23 +75,6 @@ def readadc(ts, oversample=1, delay=0.0, presample=0):
     tend=time()
     blocklen=int(len(vals)/3)
     return tend-tstart,vals,blocklen
-
-def deviceCommand(scmd):
-    global chn,devgain
-    
-    nchan,chlist=channelnum(chn)
-    
-    if scmd.find('msr')==0:
-        ndata=int(scmd.split()[1])
-        dt,vals=readadc(ndata)
-        return dt, vals
-    
-    elif scmd.find('gain')==0:
-        devgain=int(scmd.split()[1])
-        return "gain %d"%(devgain)
-
-    else:
-        return "ADS1256 interface"
     
 def directMeasure(n=1):
     return readadc(n)
@@ -99,6 +83,7 @@ def calibrate():
     adc.calibrate()
 
 def deviceClose():
+    deviceReady=False
     adc.sleep()
 
 ###### MAIN PROGRAM: LOGGING ######
@@ -160,16 +145,17 @@ def logone(cfg, filename=None):
     logBusy.clear()
 
 def start(cfg):
-    deviceInit()
+
+    deviceInit(cfg['gain'],rate)
     twait=cfg['every']
     print('starting log daemon')
     
     # FIXME! this makes CPU too busy doing nothing
-    while not daemonStop.isSet():
+    while daemonRun.isSet():
         
         startlog = logON.wait()        
 
-        if daemonStop.isSet():
+        if not daemonRun.isSet():
             break
             
         print('logging starts')
@@ -192,10 +178,10 @@ if __name__ == "__main__":
     'dt': 0,
     'oversample': 1,
     'every': 60,
-    'datapath': '/home/seismo/data/',
+    'datapath': './',
     'format': 'column'
     }
     
-    deviceInit()
+    deviceInit(cfg['gain'],rate)
     logone(cfg)
     deviceClose()

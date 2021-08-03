@@ -61,7 +61,7 @@ def digital_write(pin, value):
     GPIO.output(pin, value)
 
 def digital_read(pin):
-    return GPIO.input(DRDY_PIN)
+    return GPIO.input(pin)
 
 def delay_ms(delaytime):
     time.sleep(delaytime // 1000.0)
@@ -199,6 +199,8 @@ class ADS1256:
         if(self.mode == 0):
             if(Channel>=8):
                 return 0
+                
+            self.waitDRDY()
             self.setChannel(Channel)
             self.writeCmd(CMD['SYNC'])
             self.writeCmd(CMD['WAKEUP'])
@@ -206,6 +208,8 @@ class ADS1256:
         else:
             if(Channel>=4):
                 return 0
+            
+            self.waitDRDY()
             self.setDiffChannel(Channel)
             self.writeCmd(CMD['SYNC'])
             self.writeCmd(CMD['WAKEUP']) 
@@ -213,4 +217,5 @@ class ADS1256:
         return v
 
     def calibrate():
+        # TODO
         pass
