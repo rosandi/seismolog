@@ -35,6 +35,28 @@ dummy=False
 dpath=None
 stayon=False
 
+welcometxt='''
+    <H1 style="text-align: center;">
+    <br>SEISMO-LOG, 2021</H1>
+    <div style="text-align: center;font-size:16px;">
+    Software version: seismoqt-1.0<br>
+    ADC device: 24 bit, differential
+    </div>
+    <br>
+    <div style="text-align: center;font-size:30px;">
+    Geofisika<br>
+    Universitas Padjadjaran
+    </div>
+    <br><br>
+'''
+goodbyetxt='''
+    <H2 style="text-align: center;"><br>System shutdown in 5 seconds</H2>
+    <br>
+    <div style="text-align: center;font-size:30px;">
+    wait until shutdown complete <br>and turned off the power button!
+    </div>
+'''
+
 for arg in sys.argv:
     if arg.find('mode=') == 0:
         winmode=arg.replace('mode=','')
@@ -91,7 +113,7 @@ class cmdButton(QPushButton):
         self.resize(sz[0],sz[1])
         self.move(pos[0],pos[1])
         self.setObjectName('cmdButton')
-        self.setStyleSheet(css['button'])
+        self.setStyleSheet(css['cmdbutton'])
         if (act != None):
             self.clicked.connect(act)
 
@@ -101,6 +123,7 @@ class statusText(QTextEdit):
         self.move(pos[0],pos[1])
         self.resize(sz[0],sz[1])
         self.setStyleSheet(css['text'])
+        self.setReadOnly(True)
 
         
 class scroller(QSlider):
@@ -193,7 +216,7 @@ class controlTab(QFrame):
             self.startBtn.setStyleSheet(css['cmdbutton'])
             
     def device_shutdown(self):
-        self.devstat.setText(' Going down\n GOOD BYE')
+        self.devstat.setText(goodbyetxt)
         QTimer().singleShot(5000, lambda: seismoGUI.close())
             
     def create(self):
@@ -205,6 +228,8 @@ class controlTab(QFrame):
         
         self.clearBtn.setStyleSheet(css['button']);
         self.pdownBtn.setStyleSheet(css['warnbutton']);
+        
+        self.devstat.setHtml(welcometxt)
 
 class dataTab(QFrame):
     def __init__(self, master, pos):
@@ -225,9 +250,11 @@ class dataTab(QFrame):
             
     def create(self):
         label(self,'FILE LIST', (620,5,200,30))
-        self.plotx=plotter(self, [10, 10, 540, 180])        
-        self.ploty=plotter(self, [10, 200, 540, 180])        
-        self.plotz=plotter(self, [10, 390, 540, 180])
+        
+        self.plotx=plotter(self, [10, 10, 540, 180], 'X-comp')        
+        self.ploty=plotter(self, [10, 200, 540, 180], 'Y-comp')        
+        self.plotz=plotter(self, [10, 390, 540, 180], 'Z-comp')
+        
         self.datalist=dataList(self, [560, 30, 245,400], adc_settings['datapath'])
         self.dinfo=statusText(self, [560,440], [235,130])
         self.lxmin=label(self, '0', (20, 570, 160, 20))
@@ -275,43 +302,68 @@ class settingTab(QFrame):
     def avgchg(self):
         self.vavg.setText('%5d'%(self.avg.value()))
         self.appbtn.setStyleSheet(css['warnbutton'])
+    
+    def everychg(self):
+        self.vevery.setText('%5ds'%(self.every.value()))
+        self.appbtn.setStyleSheet(css['warnbutton'])
         
     def applySettings(self):
         adc_settings['gain'] = self.gain.value()
         adc_settings['tsample'] = self.stime.value()
         adc_settings['dt'] = self.dt.value()
         adc_settings['oversample'] = self.avg.value()
+        adc_settings['every'] = self.every.value()
         
         with open(configfile, 'w') as f:
             json.dump(adc_settings, f)
             
         self.appbtn.setStyleSheet(css['button'])
         
+    def resetSettings(self):
+        self.gain.setValue(adc_settings['gain'])
+        self.stime.setValue(adc_settings['tsample'])
+        self.dt.setValue(adc_settings['dt'])
+        self.avg.setValue(adc_settings['oversample'])
+        self.every.setValue(adc_settings['every'])
+        self.appbtn.setStyleSheet(css['button'])
+        
     def create(self):
         label(self, 'DEVICE CONFIGURATION', (250,20))
-        self.appbtn=cmdButton(self,'APPLY', (600, 500), (110,60), self.applySettings)
+        self.appbtn=cmdButton(self,'APPLY', (600, 500), (120,60), self.applySettings)
+        self.cancelbtn=cmdButton(self,'RESET', (430, 500), (140,60), self.resetSettings)
         
-        label(self, 'GAIN',(20, 110))
-        self.vgain=label(self,' 6',(700,110,100,30))
-        self.gain=scroller(self, [200, 100, 500, 50], (0,6,1), self.gainchg)
+        sy=80
+        label(self, 'GAIN',(20, sy+10))
+        self.vgain=label(self,' 6',(700,sy+10,100,30))
+        self.gain=scroller(self, [200, sy, 500, 50], (0,6,1), self.gainchg)
         self.gain.setValue(adc_settings['gain'])
-        
-        label(self, 'SAMPLE TIME',(20, 190))
-        self.vstime=label(self,'   60s',(700,190,100,30))
-        self.stime=scroller(self, [200, 180, 500, 50], (10,3600,10), self.stimechg)
+    
+        sy+=80
+        label(self, 'SAMPLE TIME',(20, sy+10))
+        self.vstime=label(self,'   60s',(700,sy+10,100,30))
+        self.stime=scroller(self, [200, sy, 500, 50], (10,3600,10), self.stimechg)
         self.stime.setValue(adc_settings['tsample'])
         
-        label(self, 'SAMPLE PERIOD',(20, 270))
-        self.vdt=label(self,'    0',(700,270,100,30))
-        self.dt=scroller(self, [200, 260, 500, 50], (0,50,1), self.dtchg)
+        sy+=80
+        label(self, 'SAMPLE PERIOD',(20, sy+10))
+        self.vdt=label(self,'    0',(700,sy+10,100,30))
+        self.dt=scroller(self, [200, sy, 500, 50], (0,50,1), self.dtchg)
         self.dt.setValue(adc_settings['dt'])
         
-        label(self, 'OVER SAMPLE', (20, 350))
-        self.vavg=label(self, '    1',(700,350,100,30))
-        self.avg=scroller(self, [200, 340, 500, 50], (1,20,1), self.avgchg) 
+        sy+=80
+        label(self, 'OVER SAMPLE', (20, sy+10))
+        self.vavg=label(self, '    1',(700,sy+10,100,30))
+        self.avg=scroller(self, [200, sy, 500, 50], (1,20,1), self.avgchg) 
         self.avg.setValue(adc_settings['oversample'])
         
+        sy+=80
+        label(self, 'ACQ PERIOD', (20, sy+10))
+        self.vevery=label(self, '    0',(700,sy+10,100,30))
+        self.every=scroller(self, [200, sy, 500, 50], (0,3600,10), self.everychg) 
+        self.every.setValue(adc_settings['every'])
+        
         self.appbtn.setStyleSheet(css['button'])
+        self.cancelbtn.setStyleSheet(css['button'])       
         
 class helpTab(QFrame):
     def __init__(self, master, pos):

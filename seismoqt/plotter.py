@@ -34,11 +34,12 @@ class plotScroller:
         self.scl.setValue(v)
 
 class plotDialog(QDialog):
-    def __init__(self, master, pos):
+    def __init__(self, master, pos, title=''):
         super(plotDialog,self).__init__(master)
+        self.title=title
         self.plotter=master
         self.setModal(True)
-        self.resize(400,340)
+        self.resize(400,350)
         self.move(pos[0],pos[1])
         self.setStyleSheet(css['dialog'])
 
@@ -62,27 +63,32 @@ class plotDialog(QDialog):
         self.plotter.repaint()
         
     def create(self):
-        plotScroller(self, 'SCALE', (5,10,350,50), lambda v: self.change_scale(v)).setValue(self.plotter.scale)
-        plotScroller(self, 'OFFSET', (5,75,350,50), lambda v:self.change_ofs(v), (-1000,1000,1)).setValue(self.plotter.yofs)
-        plotScroller(self, 'ZOOM', (5,140,350,50), lambda v:self.change_zoom(v), (-100,0,1)).setValue(self.plotter.zoom)
-        plotScroller(self, 'XPAN', (5,205,350,50), lambda v:self.change_xpan(v)).setValue(self.plotter.xpan)
+        nm=QLabel(self)
+        nm.move(200,5)
+        nm.setText(self.title)
+        
+        plotScroller(self, 'SCALE', (5,20,350,50), lambda v: self.change_scale(v)).setValue(self.plotter.scale)
+        plotScroller(self, 'OFFSET', (5,85,350,50), lambda v:self.change_ofs(v), (-1000,1000,1)).setValue(self.plotter.yofs)
+        plotScroller(self, 'ZOOM', (5,150,350,50), lambda v:self.change_zoom(v), (-100,0,1)).setValue(self.plotter.zoom)
+        plotScroller(self, 'XPAN', (5,215,350,50), lambda v:self.change_xpan(v)).setValue(self.plotter.xpan)
         
         c=QPushButton('RESET', self)
-        c.move(60,270)
+        c.move(60,280)
         c.resize(120,60)
         c.setStyleSheet(css['button'])
         c.clicked.connect(lambda: self.plotter.resetplot())
 
         b=QPushButton('CLOSE', self)
-        b.move(220,270)
+        b.move(220,280)
         b.resize(120,60)
         b.setStyleSheet(css['button'])
         b.clicked.connect(lambda: self.close())
         
 class plotter(QFrame):
 
-    def __init__(self, master, geo):
+    def __init__(self, master, geo, name=''):
         super(plotter,self).__init__(master)
+        self.name=name
         self.dim=geo[2:]
         self.resize(geo[2],geo[3])
         self.move(geo[0],geo[1])
@@ -158,6 +164,5 @@ class plotter(QFrame):
         self.repaint()        
 
     def mousePressEvent(self,ev):
-        print('create dialog here...')
-        plotDialog(self,(600,160))
+        plotDialog(self,(600,200),self.name)
 

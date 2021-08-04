@@ -10,34 +10,13 @@ QMainWindow {
   background-color:#1A64B7;
 }
 QListWidget {
-    background-color: teal;
+    background-color: #289047;
     font-size: 20px;
     color: lightgray;
     line-height:30px;
 }
 QListWidget::item:hover {background-color: blue;}
 QListWidget::item { margin: 6px; }
-
-QScrollBar:horizontal {
-  border-radius: 10px;
-  border: 10px solid blue;
-  background-color: white;
-}
-
-QScrollbar:vertical {
-  width: 50px;
-  border-radius: 10px;
-  border: 1px solid blue;
-  background-color: teal;
-}
-QScrollBar::handle:vertical{
-    background: maroon;
-    border-radius: 10px;
-    min-width: 50px;
-}
-QScrollBar::handle::pressed {
-    background : maroon;
-}
 QFrame#dataTab {
     background-color: green;
 }
@@ -56,20 +35,6 @@ QPushButton {
 }
 QPushButton::hover {
   background-color: #888;
-}
-
-QPushButton#cmdButton {
-  background-color: blue;
-  color: white;
-  border: 1px solid white;
-  outline: none;
-  text-align: center;
-  font-size: 28px; 
-  font-weight: bold;
-  border-radius: 10px;
-}
-QPushButton#cmdButton::hover {
-  background-color: #33F;
 }
 ''',
 
@@ -91,7 +56,7 @@ QPushButton::hover {
 
 'cmdbutton': '''
 QPushButton {
-  background-color: blue;
+  background-color: #000080;
   color: white;
   border: 1px solid white;
   outline: none;
@@ -101,7 +66,7 @@ QPushButton {
   border-radius: 10px;
 }
 QPushButton::hover {
-  background-color: #33F;
+  background-color: #3B86F2;
 }
 ''',
 
@@ -169,8 +134,9 @@ QLabel {
 
 *::handle:horizontal {
     background: maroon;
+    border-radius: 10px;
     border: none;
-    width: 23px;
+    width: 35px;
     height: 100px;
     margin: -24px -12px;
 }
