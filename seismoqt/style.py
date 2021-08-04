@@ -30,11 +30,10 @@ QScrollbar:vertical {
   border: 1px solid blue;
   background-color: teal;
 }
-QScrollBar::handle{
+QScrollBar::handle:vertical{
     background: maroon;
     border-radius: 10px;
     min-width: 50px;
-    min-height:50px;
 }
 QScrollBar::handle::pressed {
     background : maroon;
@@ -154,26 +153,56 @@ QLabel {
 ''',
 
 'scroll': '''
-QScrollBar:horizontal {
+* {
+  width: 30px;
   border-radius: 10px;
-  border: 10px solid blue;
-  background-color: white;
+  border: none;
+  background-color: gray;    
 }
-QScrollbar:vertical {
-  width: 50px;
-  border-radius: 10px;
-  border: 1px solid blue;
-  background-color: white;
-}
-QScrollBar::handle{
+
+*::handle:vertical{
     background: maroon;
     border-radius: 10px;
-    min-width: 50px;
-    min-height:50px;
+    width: 50px;
+    height: 50px;
 }
-QScrollBar::handle::pressed {
+
+*::handle:horizontal {
+    background: maroon;
+    border: none;
+    width: 23px;
+    height: 100px;
+    margin: -24px -12px;
+}
+*::handle::pressed {
     background : maroon;
 }
+*::groove:horizontal {
+    border: 1px solid #262626;
+    height: 5px;
+    background: #393939;
+    margin: 0 12px;
+}
+*::right-arrow, *::left-arrow{
+      border: none;
+      background: none;
+      color: none;
+}
+*::up-arrow, *::down-arrow{
+      border: none;
+      background: none;
+      color: none;
+}
+*::add-line {
+      border: none;
+      background: none;
+}
+
+*::sub-line {
+      border: none;
+      background: none;
+}
+
 ''',
 
 'list': '''

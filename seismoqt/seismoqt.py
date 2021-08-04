@@ -103,12 +103,12 @@ class statusText(QTextEdit):
         self.setStyleSheet(css['text'])
 
         
-class scroller(QScrollBar):
+class scroller(QSlider):
     def __init__(self, master, geo, lim=(0,100,1), proc=None):
         super(scroller,self).__init__(Qt.Horizontal,master)
         self.resize(geo[2],geo[3])
         self.move(geo[0],geo[1])
-        self.setStyleSheet(css['main'])
+        self.setStyleSheet(css['scroll'])
         self.setMinimum(lim[0])
         self.setMaximum(lim[1])
         self.setSingleStep(lim[2])
@@ -125,7 +125,7 @@ class dataList(QListWidget):
         self.move(geo[0],geo[1])
         self.itemClicked.connect(self.plot)
         self.setStyleSheet(css['main'])
-        self.verticalScrollBar().setStyleSheet('width: 30px;')
+        self.verticalScrollBar().setStyleSheet(css['scroll'])
             
     def plot(self, item):
         self.master.plot(self.datapath+item.text()+'.json')
