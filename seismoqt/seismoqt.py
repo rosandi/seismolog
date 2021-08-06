@@ -149,6 +149,7 @@ class dataList(QListWidget):
         self.itemClicked.connect(self.plot)
         self.setStyleSheet(css['main'])
         self.verticalScrollBar().setStyleSheet(css['scroll'])
+        #self.setFlag(16)
             
     def plot(self, item):
         self.master.plot(self.datapath+item.text()+'.json')
@@ -166,7 +167,10 @@ class dataList(QListWidget):
         self.clear()
         
         for d in datafiles:
-            self.addItem(d.replace('.json',''))
+            it=QListWidgetItem()
+            it.setText(d.replace('.json',''))
+            # it.setCheckState(Qt.Unchecked);
+            self.addItem(it)
         
         
 class label(QLabel):
@@ -192,10 +196,15 @@ class controlTab(QFrame):
     
     def status(self):
         s=self.devstat.toPlainText()
-        if adc.logON.isSet():
-            s+='logging active\n'
+        
+        if adc.daemonRun.isSet():
+            s+='logging daemon active\n'
+            if adc.logON.isSet():
+                s+='acquisition on process\n'
+            else:
+                s+='idle\n'
         else:
-            s+='logging stopped\n'
+            s+='logging daemon stopped\n'
         
         self.devstat.setText(s)
     
@@ -296,7 +305,7 @@ class settingTab(QFrame):
         self.appbtn.setStyleSheet(css['warnbutton'])
     
     def dtchg(self):
-        self.vdt.setText('%5d'%(self.dt.value()))
+        self.vdt.setText('%5ds'%(self.dt.value()))
         self.appbtn.setStyleSheet(css['warnbutton'])
 
     def avgchg(self):
@@ -334,37 +343,44 @@ class settingTab(QFrame):
         
         sy=80
         label(self, 'GAIN',(20, sy+10))
-        self.vgain=label(self,' 6',(700,sy+10,100,30))
+        self.vgain=label(self,'%5d'%(adc_settings['gain']),(700,sy+10,100,30))
         self.gain=scroller(self, [200, sy, 500, 50], (0,6,1), self.gainchg)
         self.gain.setValue(adc_settings['gain'])
     
         sy+=80
         label(self, 'SAMPLE TIME',(20, sy+10))
-        self.vstime=label(self,'   60s',(700,sy+10,100,30))
+        self.vstime=label(self,'%5ds'%(adc_settings['tsample']),(700,sy+10,100,30))
         self.stime=scroller(self, [200, sy, 500, 50], (10,3600,10), self.stimechg)
         self.stime.setValue(adc_settings['tsample'])
         
         sy+=80
         label(self, 'SAMPLE PERIOD',(20, sy+10))
-        self.vdt=label(self,'    0',(700,sy+10,100,30))
+        self.vdt=label(self,'%5ds'%(adc_settings['dt']),(700,sy+10,100,30))
         self.dt=scroller(self, [200, sy, 500, 50], (0,50,1), self.dtchg)
         self.dt.setValue(adc_settings['dt'])
         
         sy+=80
         label(self, 'OVER SAMPLE', (20, sy+10))
-        self.vavg=label(self, '    1',(700,sy+10,100,30))
+        self.vavg=label(self, '%5d'%(adc_settings['oversample']),(700,sy+10,100,30))
         self.avg=scroller(self, [200, sy, 500, 50], (1,20,1), self.avgchg) 
         self.avg.setValue(adc_settings['oversample'])
         
         sy+=80
         label(self, 'ACQ PERIOD', (20, sy+10))
-        self.vevery=label(self, '    0',(700,sy+10,100,30))
+        self.vevery=label(self, '%5ds'%(adc_settings['every']),(700,sy+10,100,30))
         self.every=scroller(self, [200, sy, 500, 50], (0,3600,10), self.everychg) 
         self.every.setValue(adc_settings['every'])
         
         self.appbtn.setStyleSheet(css['button'])
         self.cancelbtn.setStyleSheet(css['button'])       
-        
+
+class systemTab(QFrame):
+    def __init__(self, master, pos):
+        super(systemTab, self).__init__(master)
+        self.move(pos[0],pos[1])
+        self.resize(winx-220,600)
+        self.setStyleSheet('background-color: gray;')
+            
 class helpTab(QFrame):
     def __init__(self, master, pos):
         super(helpTab, self).__init__(master)
@@ -395,10 +411,12 @@ class SeismoWin(QMainWindow):
         self.cbut.setStyleSheet(css['button'])
         self.dbut.setStyleSheet(css['button'])
         self.sbut.setStyleSheet(css['button'])
+        self.sybut.setStyleSheet(css['button'])
         self.hbut.setStyleSheet(css['button'])
         self.ctab.hide()
         self.dtab.hide()
         self.stab.hide()
+        self.sytab.hide()
         self.htab.hide()
     
     def tabCtr(self):
@@ -417,12 +435,17 @@ class SeismoWin(QMainWindow):
         self.clearAttr()
         self.stab.show()
         self.sbut.setStyleSheet(css['tabsel'])
-        
+    
+    def tabSystem(self):
+        self.clearAttr()
+        self.sytab.show()
+        self.sybut.setStyleSheet(css['tabsel'])
+            
     def tabHelp(self):
         self.clearAttr()
         self.htab.show()
         self.hbut.setStyleSheet(css['tabsel'])
-            
+    
     def createWin(self):
         
         self.tframe=QFrame(self)
@@ -430,11 +453,13 @@ class SeismoWin(QMainWindow):
         self.cbut=tabButton(self.tframe,'CONTROL',[10,50],act=self.tabCtr)
         self.dbut=tabButton(self.tframe,'DATAFILE', [10,150],act=self.tabData)
         self.sbut=tabButton(self.tframe,'SETTINGS',[10,250],act=self.tabSet)
-        self.hbut=tabButton(self.tframe,'HELP',[10,350],act=self.tabHelp)
+        self.sybut=tabButton(self.tframe,'SYSTEM',[10,350],act=self.tabSystem)
+        self.hbut=tabButton(self.tframe,'HELP',[10,450],act=self.tabHelp)
         
         self.ctab=controlTab(self, [220,0])
         self.dtab=dataTab(self, [220,0])
         self.stab=settingTab(self, [220,0])
+        self.sytab=systemTab(self, [220,0])
         self.htab=helpTab(self, [220,0])
         
         self.tabCtr()
