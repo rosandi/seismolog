@@ -17,7 +17,7 @@ import time
 from PyQt5 import QtCore, QtGui, QtWidgets
 from PyQt5.QtWidgets import *
 from PyQt5.QtGui import QFont
-from PyQt5.QtCore import Qt, QTimer, QUrl
+from PyQt5.QtCore import Qt, QTimer, QUrl, QDate, QTime
 from style import style as css
 from plotter import plotter
 import json
@@ -25,7 +25,11 @@ from datetime import datetime
 from threading import Thread,Event
 from queue import Queue
 from PyQt5.QtWebKitWidgets import QWebView
+from subprocess import check_output
 
+def cmd(s):
+    return check_output(s).decode('ascii')
+    
 winmode='max'
 winx=1024
 winy=600
@@ -38,17 +42,17 @@ stayon=False
 welcometxt='''
     <H1 style="text-align: center;">
     <br>SEISMO-LOG, 2021</H1>
-    <div style="text-align: center;font-size:16px;">
-    Software version: seismoqt-1.0<br>
-    ADC device: 24 bit, differential
-    </div>
-    <br>
     <div style="text-align: center;font-size:30px;">
     Geofisika<br>
     Universitas Padjadjaran
     </div>
-    <br><br>
+    <br>
+    <div style="text-align: center;font-size:16px;">
+    Software version: seismoqt-1.0<br>
+    ADC device: 24 bit, differential<br>
+    <br>
 '''
+
 goodbyetxt='''
     <H2 style="text-align: center;"><br>System shutdown in 5 seconds</H2>
     <br>
@@ -91,8 +95,16 @@ except: # default
         'oversample': 1,
         'every': 0,
         'datapath': '/home/seismo/data/',
-        'format': 'column'
+        'format': 'column',
+        'lon': 6.9175,
+        'lat': 107.6191
     }
+
+
+welcometxt+='date/time: '+QDate.currentDate().toString()
+welcometxt+='/'+QTime.currentTime().toString()
+welcometxt+='<br>coord: %0.5f, %05f'%(adc_settings['lon'], adc_settings['lat'])
+welcometxt+='</div><br><br>'
 
 if dpath != None:
     adc_settings['datapath'] = dpath
@@ -207,7 +219,9 @@ class controlTab(QFrame):
             s+='logging daemon stopped\n'
         
         self.devstat.setText(s)
-    
+        mx=self.devstat.verticalScrollBar().maximum()
+        self.devstat.verticalScrollBar().setValue(mx)
+        
     def startLog(self):
         if not adc.daemonRun.isSet():
             self.master.startLogThread()
@@ -375,12 +389,120 @@ class settingTab(QFrame):
         self.cancelbtn.setStyleSheet(css['button'])       
 
 class systemTab(QFrame):
+      
     def __init__(self, master, pos):
         super(systemTab, self).__init__(master)
         self.move(pos[0],pos[1])
         self.resize(winx-220,600)
-        self.setStyleSheet('background-color: gray;')
+        self.setStyleSheet('background-color: blue;')
+        self.create()
+    
+    def checkwlan(self):
+        ip=None
+        try:
+            st=cmd(['ip','add','show','wlan0'])
+            for s in st.split('\n'):
+                ln=s.strip()
+                if ln.find('inet ') == 0:
+                    ip=ln.split()[1]
+                    break
+        except:
+            pass
             
+        return ip
+
+    def enableWifi(self):
+        if not dummy:
+            if self.checkwlan() == None:
+                os.system('sudo service dhcpcd start')
+            
+            #dlg=QDialog(seismoGUI)
+            #label(dlg, 'Waiting for address')
+        
+        # FIXME! network dialog
+        
+    def dataman(self):
+        print('data manager') # FIXME! module
+        os.system('/home/seismo/bin/fileman &')
+ 
+    def apply(self):
+        d=self.datein.date()
+        th=self.hourin.value()
+        tm=self.minin.value()
+        ts=self.secin.value()
+        sd='%04d-%02d-%02d %02d:%02d:%02d'%(d.year(),d.month(),d.day(),th,tm,ts)
+        sd=cmd(['date','--date='+sd])
+        print('set date: ',d)
+        os.system('sudo date --set="'+sd+'"')
+        
+        adc_settings['lat']=self.lat
+        adc_settings['lon']=self.lon
+        
+        print(cmd('date'))
+    
+    def create(self):
+        self.datein=QDateEdit(QDate.currentDate(),self,calendarPopup=True)
+        
+        sy=80
+        label(self,'DATE/TIME',(20,sy+10))
+        self.datein.move(180,sy)
+        self.datein.setStyleSheet(css['dtime'])
+        
+        tm=QTime.currentTime()
+        label(self,'H',(430,sy+10))
+        self.hourin=QSpinBox(self)
+        self.hourin.move(450,sy)
+        self.hourin.setMinimum(0)
+        self.hourin.setMaximum(23)
+        self.hourin.setStyleSheet(css['dtime'])
+        self.hourin.setValue(tm.hour())
+
+        label(self,'M',(550,sy+10))        
+        self.minin=QSpinBox(self)
+        self.minin.move(570,sy)
+        self.minin.setMinimum(0)
+        self.minin.setMaximum(60)
+        self.minin.setStyleSheet(css['dtime'])
+        self.minin.setValue(tm.minute())
+        
+        label(self,'S',(670,sy+10))
+        self.secin=QSpinBox(self)
+        self.secin.move(690,sy)
+        self.secin.setMinimum(0)
+        self.secin.setMaximum(60)
+        self.secin.setStyleSheet(css['dtime'])
+        self.secin.setValue(tm.second())
+        
+        sy+=80
+        label(self,'LONGITUDE',(20,sy+10))
+        self.lon=QDoubleSpinBox(self)
+        self.lon.move(180,sy)
+        self.lon.setMinimum(-180)
+        self.lon.setMaximum(180)
+        self.lon.setDecimals(5)
+        self.lon.setValue(adc_settings['lon'])
+        self.lon.setStyleSheet(css['dtime'])
+        
+        label(self,'LATITUDE',(435,sy+10))
+        self.lat=QDoubleSpinBox(self)
+        self.lat.move(555,sy)
+        self.lat.setMinimum(-180)
+        self.lat.setMaximum(180)
+        self.lat.setDecimals(5)
+        self.lat.setValue(adc_settings['lat'])
+        self.lat.setStyleSheet(css['dtime'])
+
+        sy+=80
+        self.wifibtn=cmdButton(self,'ENABLE WiFi', (180,sy), (280,60), self.enableWifi)
+        
+        sy+=80
+        cmdButton(self,'DATA MANAGER', (180,sy), (280,60), self.dataman)
+        
+        
+        self.appbtn=cmdButton(self,'APPLY', (600,500), (120,60), self.apply)
+        self.appbtn.setStyleSheet(css['button'])
+        
+        
 class helpTab(QFrame):
     def __init__(self, master, pos):
         super(helpTab, self).__init__(master)

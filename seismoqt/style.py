@@ -203,5 +203,20 @@ QScrollBar::handle{
 QScrollBar::handle::pressed {
     background : maroon;
 }
+''',
+
+'dtime': '''
+*{
+    background-color: gray;
+    font-size: 30px; 
+    color: yellow;
+}
+*::down-button{
+    width:30px;
+}
+*::up-button{
+        width:30px;
+}
 '''
+
 }

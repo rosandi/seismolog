@@ -96,6 +96,8 @@ def logone(cfg, filename=None):
     sampletime=cfg['tsample']
     avg=cfg['oversample']
     dly=cfg['dt']
+    lon=cfg['lon']
+    lat=cfg['lat']
     fileformat='json'
     
     if datapath[len(datapath)-1] != '/':
@@ -134,6 +136,8 @@ def logone(cfg, filename=None):
             'tsample':t, 
             'tstart':tstart, 
             'length': blocklen, 
+            'lon': lon,
+            'lat': lat,
             'data':ad
             }
         
@@ -151,6 +155,7 @@ def start(cfg):
     print('starting log daemon')
     daemonRun.set()
     logON.set()
+    sleep(10) # just wait to let things set up
     
     # FIXME! this makes CPU too busy doing nothing
     while daemonRun.isSet():
@@ -190,7 +195,9 @@ if __name__ == "__main__":
     'oversample': 1,
     'every': 60,
     'datapath': './',
-    'format': 'column'
+    'format': 'column',
+    'lon': 6.9175,
+    'lat': 107.6191
     }
     
     deviceInit(cfg['gain'],rate)
