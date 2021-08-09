@@ -23,7 +23,7 @@ QFrame#dataTab {
 ''',
 
 'button': '''
-QPushButton {
+* {
   background-color: #555;
   color: white;
   border: 1px solid white;
@@ -33,8 +33,12 @@ QPushButton {
   font-weight: bold;
   border-radius: 10px;
 }
-QPushButton::hover {
+*::hover {
   background-color: #888;
+}
+*::indicator {
+    width: 30px;
+    height: 30px;
 }
 ''',
 
@@ -217,6 +221,21 @@ QScrollBar::handle::pressed {
 *::up-button{
         width:30px;
 }
-'''
+''',
 
+'ctext': '''
+*{
+    background-color: #555;
+    font-size: 28px;
+    font-weight: bold;
+    color: white;
+    padding: 10px 15px 10px 15px;
+    border: 1px solid white;
+    border-radius: 10px;
+}
+*::indicator {
+    width: 24px;
+    height: 24px;
+}
+'''
 }
