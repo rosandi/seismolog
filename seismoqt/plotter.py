@@ -108,10 +108,11 @@ class plotter(QFrame):
         self.zoom=0 # logaritmic
         self.xpan=0
         self.yofs=0
+        self.lim=(0,1)
         self.data=None
         self.invert=True
         self.fft=False
-                
+    
     def paintEvent(self, event):
         p=QPainter(self)
         
@@ -128,8 +129,15 @@ class plotter(QFrame):
         p.setPen(QColor(168, 34, 3))
         p.setFont(QFont('Decorative', 10))
         p.drawLine(20, 5, 20, x[1]-5)
-        if not self.fft:
+        if self.fft:
+            p.drawText(25,10,'0Hz')
+            p.drawText(self.dim[0]-60,10,'%0.2fHz'%(0.5*len(self.data)/self.lim[1]))
+            
+        else:
             p.drawLine(20, x[1]/2, x[0]-5, x[1]/2)
+            p.drawText(25,self.dim[1]-10,'%0.2fs'%(self.lim[0]))
+            p.drawText(self.dim[0]-60,self.dim[1]-10,'%0.2fs'%(self.lim[1]))
+            
  
     def plotvstime(self,p):
         xmax=len(self.data)

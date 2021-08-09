@@ -280,10 +280,6 @@ class dataTab(QFrame):
         
         self.datalist=dataList(self, [560, 30, 245,400], adc_settings['datapath'])
         self.dinfo=statusText(self, [560,440], [235,130])
-        self.lxmin=label(self, '0', (20, 570, 160, 20))
-        self.lxmax=label(self, '1s', (530, 570, 160, 20))
-        self.lxmax.setStyleSheet('color: white;')
-        self.lxmin.setStyleSheet('color: white;')
         self.ticks=QTimer()
         self.ticks.timeout.connect(lambda: self.update_to())
         
@@ -291,6 +287,10 @@ class dataTab(QFrame):
         
         with open(dname) as f:
             d=json.load(f)
+        
+        self.plotx.lim=(0,d['tsample'])
+        self.ploty.lim=(0,d['tsample'])
+        self.plotz.lim=(0,d['tsample'])
         
         self.plotx.plot(d['data'][0])
         self.ploty.plot(d['data'][1])
@@ -300,7 +300,6 @@ class dataTab(QFrame):
         nn=dname.split('/')
         nn=nn[len(nn)-1].replace('.json','')
         dinfo.setText(nn+'\n\n'+logtime+'\ntsample:%0.5e\nlength:%d'%(d['tsample'],d['length']))
-        self.lxmax.setText('%0.1fs'%(d['tsample']))
         
 class settingTab(QFrame):
     def __init__(self, master, pos):
