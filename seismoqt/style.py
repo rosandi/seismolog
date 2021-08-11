@@ -40,6 +40,9 @@ QFrame#dataTab {
     width: 30px;
     height: 30px;
 }
+*:disabled{
+  background-color: yellow;
+}
 ''',
 
 'tabsel': '''

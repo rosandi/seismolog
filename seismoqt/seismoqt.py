@@ -38,6 +38,7 @@ docfile='file:///home/seismo/doc/about-id.html'
 dummy=False
 dpath=None
 stayon=False
+netdev='wlan0'
 
 welcometxt='''
     <H1 style="text-align: center;">
@@ -300,7 +301,55 @@ class dataTab(QFrame):
         nn=dname.split('/')
         nn=nn[len(nn)-1].replace('.json','')
         dinfo.setText(nn+'\n\n'+logtime+'\ntsample:%0.5e\nlength:%d'%(d['tsample'],d['length']))
+
+class networkDialog(QDialog):
+    def __init__(self,master):
+        super(networkDialog,self).__init__(master)
+        self.setModal(True)
+        self.move(400,200)
+        self.resize(300,200)
+        self.iplabel=label(self, 'Waiting for address',(20,20,300,20))
+        self.closebtn=cmdButton(self, 'CLOSE', (80, 120), (140,60), lambda: self.close())
+        self.closebtn.setEnabled(False)
+        self.closebtn.setStyleSheet(css['button'])
+        self.wcount=0
+        self.ipwait=QTimer()
+        self.ipwait.timeout.connect(lambda: self.waitwlan())
+
+        ip=self.checkwlan()
+        if ip == None:
+            os.system('sudo service dhcpcd start &')
+        self.waitwlan()    
+
+    def checkwlan(self):
+        ip=None
+        try:
+            st=cmd(['ip','add','show',netdev])
+            for s in st.split('\n'):
+                ln=s.strip()
+                if ln.find('inet ') == 0:
+                    ip=ln.split()[1]
+                    break
+        except:
+            pass
+            
+        return ip
         
+    def waitwlan(self):
+        ip=self.checkwlan()
+        if ip == None and self.wcount < 50:
+            self.wcount+=1
+            self.ipwait.start(1000)
+            #print("waiting... ip=",ip)
+
+        elif self.wcount >=50:
+            self.iplabel.setText('failed to activate WiFi')
+            self.closebtn.setEnabled(True)            
+        else:
+            self.iplabel.setText('IP Address: '+ip)
+            self.closebtn.setEnabled(True)
+
+
 class settingTab(QFrame):
     def __init__(self, master, pos):
         super(settingTab, self).__init__(master)
@@ -396,29 +445,12 @@ class systemTab(QFrame):
         self.setStyleSheet('background-color: blue;')
         self.create()
     
-    def checkwlan(self):
-        ip=None
-        try:
-            st=cmd(['ip','add','show','wlan0'])
-            for s in st.split('\n'):
-                ln=s.strip()
-                if ln.find('inet ') == 0:
-                    ip=ln.split()[1]
-                    break
-        except:
-            pass
-            
-        return ip
+
 
     def enableWifi(self):
-        if not dummy:
-            if self.checkwlan() == None:
-                os.system('sudo service dhcpcd start')
-            
-            #dlg=QDialog(seismoGUI)
-            #label(dlg, 'Waiting for address')
-        
-        # FIXME! network dialog
+        if dummy:
+            return
+        networkDialog(seismoGUI).exec()
         
     def dataman(self):
         print('data manager') # FIXME! module
