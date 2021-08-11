@@ -306,7 +306,7 @@ class networkDialog(QDialog):
     def __init__(self,master):
         super(networkDialog,self).__init__(master)
         self.setModal(True)
-        self.move(400,200)
+        self.move(450,250)
         self.resize(300,200)
         self.iplabel=label(self, 'Waiting for address',(20,20,300,20))
         self.closebtn=cmdButton(self, 'CLOSE', (80, 120), (140,60), lambda: self.close())
@@ -445,8 +445,6 @@ class systemTab(QFrame):
         self.setStyleSheet('background-color: blue;')
         self.create()
     
-
-
     def enableWifi(self):
         if dummy:
             return
@@ -524,7 +522,7 @@ class systemTab(QFrame):
         self.lat.setStyleSheet(css['dtime'])
 
         sy+=80
-        self.wifibtn=cmdButton(self,'ENABLE WiFi', (180,sy), (280,60), self.enableWifi)
+        self.wifibtn=cmdButton(self,'WiFi', (180,sy), (280,60), self.enableWifi)
         
         sy+=80
         cmdButton(self,'DATA MANAGER', (180,sy), (280,60), self.dataman)
@@ -533,7 +531,14 @@ class systemTab(QFrame):
         self.appbtn=cmdButton(self,'APPLY', (600,500), (120,60), self.apply)
         self.appbtn.setStyleSheet(css['button'])
         
-        
+    def update_time(self):
+        d=QDate.currentDate()
+        t=QTime.currentTime()
+        self.datein.setDate(d)
+        self.hourin.setValue(t.hour())
+        self.minin.setValue(t.minute())
+        self.secin.setValue(t.second())
+
 class helpTab(QFrame):
     def __init__(self, master, pos):
         super(helpTab, self).__init__(master)
@@ -591,9 +596,10 @@ class SeismoWin(QMainWindow):
     
     def tabSystem(self):
         self.clearAttr()
+        self.sytab.update_time()
         self.sytab.show()
         self.sybut.setStyleSheet(css['tabsel'])
-            
+
     def tabHelp(self):
         self.clearAttr()
         self.htab.show()
