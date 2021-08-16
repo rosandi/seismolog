@@ -464,8 +464,11 @@ class systemTab(QFrame):
         print('set date: ',d)
         os.system('sudo date --set="'+sd+'"')
         
-        adc_settings['lat']=self.lat
-        adc_settings['lon']=self.lon
+        adc_settings['lat']=float(self.lat)
+        adc_settings['lon']=float(self.lon)
+
+        with open(configfile, 'w') as f:
+            json.dump(adc_settings, f)
         
         print(cmd('date'))
     
