@@ -34,11 +34,13 @@ winmode='max'
 winx=1024
 winy=600
 configfile='/home/seismo/config.json'
+errorfile='/home/seismo/seismo.err'
 docfile='file:///home/seismo/doc/about-id.html'
 dummy=False
 dpath=None
 stayon=False
 netdev='wlan0'
+restart_on_error=True
 
 welcometxt='''
     <H1 style="text-align: center;">
@@ -77,6 +79,11 @@ for arg in sys.argv:
     if arg.find('shutdown=') == 0:
         if arg.replace('shutdown=','') == 'no':
             stayon=True
+    if arg.find('restart=') == 0:
+        if arg.replace('restart=','') == 'yes':
+            restart_on_error=True
+        else:
+            restart_on_error=False
 
 if dummy:
     import adcdummy as adc
@@ -284,23 +291,29 @@ class dataTab(QFrame):
         self.ticks=QTimer()
         self.ticks.timeout.connect(lambda: self.update_to())
         
-    def plot(self, dname):    
+    def plot(self, dname):
         
-        with open(dname) as f:
-            d=json.load(f)
-        
-        self.plotx.lim=(0,d['tsample'])
-        self.ploty.lim=(0,d['tsample'])
-        self.plotz.lim=(0,d['tsample'])
-        
-        self.plotx.plot(d['data'][0])
-        self.ploty.plot(d['data'][1])
-        self.plotz.plot(d['data'][2])
-        logtime=datetime.fromtimestamp(d['tstart']).strftime("%m/%d/%Y %H:%M:%S")
-        dinfo=self.dinfo
-        nn=dname.split('/')
-        nn=nn[len(nn)-1].replace('.json','')
-        dinfo.setText(nn+'\n\n'+logtime+'\ntsample:%0.5e\nlength:%d'%(d['tsample'],d['length']))
+        if adc.logBusy.isSet():
+            return
+                
+        try:
+            with open(dname) as f:
+                d=json.load(f)
+            
+            self.plotx.lim=(0,d['tsample'])
+            self.ploty.lim=(0,d['tsample'])
+            self.plotz.lim=(0,d['tsample'])
+            
+            self.plotx.plot(d['data'][0])
+            self.ploty.plot(d['data'][1])
+            self.plotz.plot(d['data'][2])
+            logtime=datetime.fromtimestamp(d['tstart']).strftime("%m/%d/%Y %H:%M:%S")
+            dinfo=self.dinfo
+            nn=dname.split('/')
+            nn=nn[len(nn)-1].replace('.json','')
+            dinfo.setText(nn+'\n\n'+logtime+'\ntsample:%0.5e\nlength:%d'%(d['tsample'],d['length']))
+        except:
+            print('bad data format')
 
 class networkDialog(QDialog):
     def __init__(self,master):
@@ -464,8 +477,8 @@ class systemTab(QFrame):
         print('set date: ',d)
         os.system('sudo date --set="'+sd+'"')
         
-        adc_settings['lat']=float(self.lat)
-        adc_settings['lon']=float(self.lon)
+        adc_settings['lat']=self.lat.value()
+        adc_settings['lon']=self.lon.value()
 
         with open(configfile, 'w') as f:
             json.dump(adc_settings, f)
@@ -655,14 +668,37 @@ class SeismoWin(QMainWindow):
         
         if self.logtrd.is_alive():
             self.logtrd.join()       
- 
-####### MAIN ########
-seismoapp=QApplication(sys.argv)
-seismoGUI=SeismoWin()
-seismoapp.exec()
 
-if not stayon:
-    print('Power down')
-    os.system('sudo poweroff')
-else:
-    print('Seismo machine stays alive')
+####### MAIN ########
+
+restartcnt=0
+
+def main():
+    global seismoGUI, stayon
+    
+    seismoapp=QApplication(sys.argv)
+    seismoGUI=SeismoWin()
+    seismoapp.exec()
+
+    if not stayon:
+        print('Power down')
+        os.system('sudo poweroff')
+    else:
+        print('Seismo machine stays alive')
+
+
+try:
+    main()
+
+except Exception as e:
+    print('SEISMOLOG PROGRAM ERROR:')
+    print(e)
+    
+    with open(errorfile,'a') as f:
+        f.write(string(e));
+        f.write('\nerror count %d\n'%(restartcnt))
+    
+    if restart_on_error:
+        restartcnt+=1
+        print('restarting application')
+        main()
