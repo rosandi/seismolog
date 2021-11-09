@@ -22,7 +22,7 @@ from queue import Queue
 devgain=6
 adc=None
 deviceReady=False
-	
+
 # rate>1000SPS prone to noise!
 rate=DRATE_E['500SPS']
 
@@ -31,11 +31,11 @@ daemonRun=Event()
 logBusy=Event()
 
 messages={
-0: 'idle',
-1: 'acquisition',
-2: 'presample',
-3: 'initialization',
-'text': 'none'
+  0: 'idle',
+  1: 'acquisition',
+  2: 'presample',
+  3: 'initialization',
+  'text': 'none'
 }
 
 tstart=0
@@ -44,10 +44,10 @@ statid=0
 logscr=True
 
 def printlog(s):
-		if logscr:
-				print(s)
-		else:
-				messages['text']=s
+    if logscr:
+        print(s)
+    else:
+        essages['text']=s
 
 def channelnum(cmask=None,nchannel=None):
     return 3, [0,1,2]
@@ -80,12 +80,12 @@ def readadc(ts, oversample=1, delay=0.0, presample=0):
         y=0
         z=0
         oi=0
-				
-				while oi<oversample:
+
+        while oi<oversample:
         #for i in range(oversample):
 
             if not daemonRun.isSet():
-                return 0,[0,],0
+              return 0,[0,],0
 
             x+=adc.getValue(0)
             y+=adc.getValue(1)
