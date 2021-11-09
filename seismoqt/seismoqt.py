@@ -250,7 +250,10 @@ class controlTab(QFrame):
             self.devstat.setText(s)
             self.startBtn.setText('START')
             self.startBtn.setStyleSheet(css['cmdbutton'])
-            
+
+        mx=self.devstat.verticalScrollBar().maximum()
+        self.devstat.verticalScrollBar().setValue(mx)
+ 
     def device_shutdown(self):
         self.devstat.setText(goodbyetxt)
         QTimer().singleShot(5000, lambda: seismoGUI.close())

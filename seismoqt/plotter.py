@@ -126,6 +126,8 @@ class plotter(QFrame):
             
     def axis(self,p):
         x=self.dim        
+        if self.data==None: 
+            self.fft=False
         p.setPen(QColor(168, 34, 3))
         p.setFont(QFont('Decorative', 10))
         p.drawLine(20, 5, 20, x[1]-5)
