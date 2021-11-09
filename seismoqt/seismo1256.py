@@ -42,6 +42,7 @@ tstart=0
 tend=0
 statid=0
 logscr=True
+lognum=0
 
 def printlog(s):
     if logscr:
@@ -118,6 +119,8 @@ def deviceClose():
 ###### MAIN PROGRAM: LOGGING ######
 
 def logone(cfg, filename=None):
+    global lognum
+
     logBusy.set()
     datapath=cfg['datapath']
     major=cfg['format']
@@ -135,6 +138,8 @@ def logone(cfg, filename=None):
     if filename==None:
         filename=datapath+strftime('%Y%m%d%H%M%S')
     
+    lognum+=1
+
     # read a block of data
     t,d,blocklen=readadc(sampletime,avg,dly,presample)
     

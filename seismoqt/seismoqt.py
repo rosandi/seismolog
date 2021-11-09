@@ -41,6 +41,7 @@ dpath=None
 stayon=False
 netdev='wlan0'
 restart_on_error=True
+restartcnt=0
 
 welcometxt='''
     <H1 style="text-align: center;">
@@ -108,7 +109,6 @@ except: # default
         'lat': 107.6191
     }
 
-
 welcometxt+='date/time: '+QDate.currentDate().toString()
 welcometxt+='/'+QTime.currentTime().toString()
 welcometxt+='<br>coord: %0.5f, %05f'%(adc_settings['lon'], adc_settings['lat'])
@@ -144,7 +144,6 @@ class statusText(QTextEdit):
         self.resize(sz[0],sz[1])
         self.setStyleSheet(css['text'])
         self.setReadOnly(True)
-
         
 class scroller(QSlider):
     def __init__(self, master, geo, lim=(0,100,1), proc=None):
@@ -157,7 +156,7 @@ class scroller(QSlider):
         self.setSingleStep(lim[2])
         if proc != None:
             self.valueChanged.connect(proc)
-        
+
 class dataList(QListWidget):
     
     def __init__(self, master, geo, datapath):
@@ -220,8 +219,13 @@ class controlTab(QFrame):
         if adc.daemonRun.isSet():
             s+='logging daemon active\n'
             if adc.logON.isSet():
-                s+='acquisition on process\n'
-                s+='stage: '+adc.messages[adc.statid]+'\n'
+                s+='acquisition on process, '
+                sid=adc.statid
+                s+='stage: '+adc.messages[sid]+'\n'
+                if sid != 0:
+                    tlog=adc.tend-adc.tstart
+                    tnow=time.time()-adc.tstart
+                    s+='#log %d time: %0.2f sec from %0.2f sec\n'%(adc.lognum,tnow,tlog)
             else:
                 s+='idle\n'
         else:
@@ -671,8 +675,6 @@ class SeismoWin(QMainWindow):
             self.logtrd.join()       
 
 ####### MAIN ########
-
-restartcnt=0
 
 def main():
     global seismoGUI, stayon
