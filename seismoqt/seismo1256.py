@@ -16,19 +16,38 @@ import RPi.GPIO as GPIO
 import sys
 import json
 import numpy as np
-from threading import Thread,Event, Timer
+from threading import Thread, Event, Timer
 from queue import Queue
 
 devgain=6
 adc=None
 deviceReady=False
-
+	
 # rate>1000SPS prone to noise!
 rate=DRATE_E['500SPS']
 
 logON=Event() # initiate: clear
 daemonRun=Event()
 logBusy=Event()
+
+messages={
+0: 'idle',
+1: 'acquisition',
+2: 'presample',
+3: 'initialization',
+'text': 'none'
+}
+
+tstart=0
+tend=0
+statid=0
+logscr=True
+
+def printlog(s):
+		if logscr:
+				print(s)
+		else:
+				messages['text']=s
 
 def channelnum(cmask=None,nchannel=None):
     return 3, [0,1,2]
@@ -41,29 +60,37 @@ def deviceInit(gain,rate):
     deviceReady=True
     
 def readadc(ts, oversample=1, delay=0.0, presample=0):
+    global statid, tstart, tend
     
     vals=[]
-    tstart=time()
-    tend=tstart+ts;
     
     # presampling: throw out bad data
+    statid=2
     for i in range(presample):
         adc.getValue(0)
         adc.getValue(1)
         adc.getValue(2)
     
+    statid=1
+    tstart=time()
+    tend=tstart+ts;
+    
     while(time() < tend):
         x=0
         y=0
         z=0
+				oi=0
+				
+				while oi<oversample:
+        #for i in range(oversample):
 
-        for i in range(oversample):
+            if not daemonRun.isSet():
+                return 0,[0,],0
+
             x+=adc.getValue(0)
             y+=adc.getValue(1)
             z+=adc.getValue(2)
-            
-            if not daemonRun.isSet():
-                return 0,[0,],0
+            oi+=1            
 
         vals.append(x/oversample/float(0x7fffff))
         vals.append(y/oversample/float(0x7fffff))
@@ -74,6 +101,8 @@ def readadc(ts, oversample=1, delay=0.0, presample=0):
         
     tend=time()
     blocklen=int(len(vals)/3)
+    statid=0
+    
     return tend-tstart,vals,blocklen
     
 def directMeasure(n=1):
@@ -103,10 +132,10 @@ def logone(cfg, filename=None):
     if datapath[len(datapath)-1] != '/':
         datapath+='/'
 
-    tstart=time()  
     if filename==None:
         filename=datapath+strftime('%Y%m%d%H%M%S')
     
+    # read a block of data
     t,d,blocklen=readadc(sampletime,avg,dly,presample)
     
     if not daemonRun.isSet():
@@ -170,8 +199,7 @@ def start(cfg):
         logone(cfg)
         t=twait-(time()-t)
         
-        if t<0:
-            t=0
+        if t<0: t=0
         
         print('wait for %0.2f seconds'%(t))
         

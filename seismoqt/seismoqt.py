@@ -221,6 +221,7 @@ class controlTab(QFrame):
             s+='logging daemon active\n'
             if adc.logON.isSet():
                 s+='acquisition on process\n'
+                s+='stage: '+adc.messages[adc.statid]+'\n'
             else:
                 s+='idle\n'
         else:
