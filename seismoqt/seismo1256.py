@@ -79,7 +79,7 @@ def readadc(ts, oversample=1, delay=0.0, presample=0):
         x=0
         y=0
         z=0
-				oi=0
+        oi=0
 				
 				while oi<oversample:
         #for i in range(oversample):
