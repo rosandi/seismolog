@@ -295,11 +295,18 @@ class dataTab(QFrame):
         self.dinfo=statusText(self, [560,440], [235,130])
         self.ticks=QTimer()
         self.ticks.timeout.connect(lambda: self.update_to())
+
+    def hide(self):
+        self.plotx.data=None
+        self.ploty.data=None
+        self.plotz.data=None
+        super(dataTab, self).hide()
         
     def plot(self, dname):
         
-        if adc.logBusy.isSet():
-            return
+        # this gives confusion...
+        #if adc.logBusy.isSet():
+        #    return
                 
         try:
             with open(dname) as f:
