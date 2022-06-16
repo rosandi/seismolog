@@ -15,6 +15,9 @@ port='8000'
 winmode='max'
 
 for arg in sys.argv:
+    if arg.find('file=') == 0:
+        host='file://'+arg.replace('file=','')
+        port=''
     if arg.find('host=') == 0:
         host=arg.replace('host=','')
         if host.find('http') != 0:
@@ -27,10 +30,14 @@ for arg in sys.argv:
 app = QApplication(sys.argv)
 web = QWebView()
 
-print('loading '+host+':'+port)
-
 web.resize(1000,600)
-web.load(QUrl(host+':'+port))
+
+if port!='':
+    host+=':'+port
+
+print('loading '+host)
+
+web.load(QUrl(host))
 
 if winmode == 'max':
     web.showMaximized()

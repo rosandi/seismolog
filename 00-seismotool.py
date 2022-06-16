@@ -96,7 +96,7 @@ def plotjson(fname, domain='time', field='xyz', smooth=None, log=False, show=Tru
     
     if show:
         plt.show()
-	
+
 
 def plothvsr(fname,smooth=0.1,log=True,show=True):
     if isinstance(fname,list):
