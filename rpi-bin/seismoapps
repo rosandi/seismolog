@@ -1,0 +1,24 @@
+#!/bin/bash
+
+while true; do
+	app=$(/opt/bin/appselect)
+
+	if [[ $app == tracer ]]; then
+	  echo loading tracer
+	  cd /opt/tracer
+	  ./tracer.py config=config_linux.json
+
+	elif [[ $app == logger ]]; then
+	  echo loading logger 
+	  /opt/seismoqt/seismoqt.py shutdown=no
+
+	elif [[ $app == poweroff ]]; then
+	  echo power off
+	  sudo poweroff
+
+	elif [[ $app == terminal ]]; then
+	  echo open terminal
+	  xterm
+	fi
+
+done

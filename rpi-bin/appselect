@@ -1,0 +1,109 @@
+#!/usr/bin/env python3
+
+import sys
+from PyQt5.QtWidgets import (
+        QWidget, 
+        QApplication, 
+        QTextBrowser, 
+        QPushButton, 
+        QGridLayout
+        )
+
+sty='''
+QPushButton{
+  background-color: #000080;
+  color: white;
+  border: 1px solid white;
+  outline: none;
+  text-align: center;
+  font-size: 30px; 
+  font-weight: bold;
+  border-radius: 30px;
+  padding: 50px 100px 50px 100px;
+}
+
+QPushButton#smallPB{
+  background-color: red;
+  color: white;
+  border: 1px solid white;
+  outline: none;
+  text-align: center;
+  font-size: 30px; 
+  font-weight: bold;
+  border-radius: 20px;
+  padding: 10px 10px 10px 10px;
+}
+
+QPushButton::hover {
+  background-color: #3B86F2;
+}
+
+QPushButton#smallPB::hover {
+  background-color: darkmagenta;
+}
+'''
+
+info_text='''
+<div style="text-align:center;">
+<h1>SeismoLog Applications</h1>
+ver 2.0<br><br>
+Geophysics -- Universitas Padjadjaran
+</div>
+'''
+
+class selWin(QWidget):
+    def __init__(self):
+        super(selWin,self).__init__()
+        self.resize(800,400)
+        self.move((1024-800)//2, (600-400)//2)
+        self.setWindowTitle("SeismoLog Apps Selector")
+        
+        info=QTextBrowser()
+        info.setText(info_text)
+        
+        sqt=QPushButton('Vibration\nLogger')
+        trc=QPushButton('Geophone\nTracer')
+        sdn=QPushButton('Power off')
+        trm=QPushButton('Terminal')
+
+        sqt.clicked.connect(self.sel_logger)
+        trc.clicked.connect(self.sel_tracer)
+        sdn.clicked.connect(self.sel_poweroff)
+        trm.clicked.connect(self.sel_terminal)
+
+        sdn.setObjectName('smallPB')
+        trm.setObjectName('smallPB')
+
+        glo=QGridLayout()
+
+        glo.addWidget(info,0,0,1,2)
+        glo.addWidget(sqt,1,0)
+        glo.addWidget(trc,1,1)
+        glo.addWidget(sdn,2,0)
+        glo.addWidget(trm,2,1)
+        
+
+        self.setLayout(glo)
+
+    def sel_logger(self):
+        print('logger')
+        self.close()
+
+    def sel_tracer(self):
+        print('tracer')
+        self.close()
+
+    def sel_poweroff(self):
+        print('poweroff')
+        self.close()
+
+    def sel_terminal(self):
+        print('terminal')
+        self.close()
+        
+app=QApplication(sys.argv)
+app.setApplicationName('SeismoLog Selector')
+app.setStyleSheet(sty)
+win=selWin()
+win.show()
+app.exec_()
