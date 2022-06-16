@@ -75,6 +75,8 @@ def readadc(ts, oversample=1, delay=0.0, presample=0):
     statid=1
     tstart=time()
     tend=tstart+ts;
+    #cnt=0
+    #print(ts,oversample,delay)
     
     while(time() < tend):
         x=0
@@ -83,7 +85,6 @@ def readadc(ts, oversample=1, delay=0.0, presample=0):
         oi=0
 
         while oi<oversample:
-        #for i in range(oversample):
 
             if not daemonRun.isSet():
               return 0,[0,],0
@@ -99,10 +100,12 @@ def readadc(ts, oversample=1, delay=0.0, presample=0):
 
         if delay>0: # faster, maybe...
             sleep(delay)
+        # cnt+=1
         
     tend=time()
     blocklen=int(len(vals)/3)
     statid=0
+    #print(tend-tstart, blocklen, cnt)
     
     return tend-tstart,vals,blocklen
     
@@ -233,6 +236,24 @@ if __name__ == "__main__":
     'lat': 107.6191
     }
     
+    outfile=None
+    
+    for arg in sys.argv:
+        if arg.find("conf=") == 0:
+            fjs=arg.replace("conf=","")
+            
+            try:
+                print("reading configuration file:",fjs)
+                with open(fjs) as f:
+                    tcfg=json.load(f)
+                cfg=tcfg
+            except:
+                print("failed opening config file")
+                
+        if arg.find("out=") == 0:
+            outfile=arg.replace("out=","")
+    
     deviceInit(cfg['gain'],rate)
-    logone(cfg)
+    daemonRun.set()
+    logone(cfg,outfile)
     deviceClose()

@@ -22,22 +22,8 @@ adc=None
 trigpin=None
 
 logON=Event() # initiate: clear
-daemonRun=Event()
+daemonStop=Event()
 logBusy=Event()
-
-messages={
-  0: 'idle',
-  1: 'acquisition',
-  2: 'presample',
-  3: 'initialization',
-  'text': 'none'
-}
-
-tstart=0
-tend=0
-statid=0
-logscr=True
-lognum=0
 
 def channelnum(cmask=None,nchannel=None):
     return 3, [0,1,2]
@@ -62,9 +48,9 @@ def start(cfg):
     print('starting log daemon')
     
     # FIXME! this makes CPU too busy doing nothing
-    while not daemonRun.isSet():
+    while not daemonStop.isSet():
         startlog = logON.wait()        
-        if daemonRun.isSet():
+        if daemonStop.isSet():
             break
             
         print('logging starts')
