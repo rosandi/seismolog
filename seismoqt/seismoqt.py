@@ -263,7 +263,7 @@ class controlTab(QFrame):
         self.statusBtn=cmdButton(self,'STATUS', (20,10), (150,60), self.status)
         self.startBtn=cmdButton(self,'START', (200,10), (150,60), self.startLog)
         self.clearBtn=cmdButton(self,'CLEAR', (20,510), (150,60), lambda: self.devstat.setText(''))
-        self.pdownBtn=cmdButton(self,'SHUTDOWN', (520,510), (220,60), self.device_shutdown)
+        self.pdownBtn=cmdButton(self,'QUIT', (520,510), (220,60), self.device_shutdown)
         
         self.clearBtn.setStyleSheet(css['button']);
         self.pdownBtn.setStyleSheet(css['warnbutton']);
@@ -693,11 +693,11 @@ def main():
     seismoGUI=SeismoWin()
     seismoapp.exec()
 
-    if not stayon:
-        print('Power down')
-        os.system('sudo poweroff')
-    else:
-        print('Seismo machine stays alive')
+#    if not stayon:
+#        print('Power down')
+#        os.system('sudo poweroff')
+#    else:
+#        print('Seismo machine stays alive')
 
 
 try:

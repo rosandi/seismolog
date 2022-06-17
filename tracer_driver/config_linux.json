@@ -1,0 +1,21 @@
+{
+  "device": "1256",
+  "port": "",
+  "calibrate": false,
+  "init":"dt 0;avg 1;gain 0 0 0",
+  "command": {
+    "oversample": "avg %d",
+    "sample_delay": "dt %d",
+    "gain": "gain %s",
+    "channel_mask": "chn %d"
+  },
+  "gui":{
+    "filter":true,
+    "strength":0.25,
+    "zoom": 200,
+    "scale": 50,
+    "threshold": 0.1,
+    "timer": 10,
+    "max_fetch": 100
+  }
+}
