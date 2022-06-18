@@ -34,7 +34,14 @@ adcfac=float(0x7fffff)
 
 class adcdriver:
 
-    def __init__(self,port,cmd):
+    def __init__(self,port='',cmd='',verbose=True,log=None): # compatibility arguments
+
+        self.verbose=verbose
+
+        if log == None:
+            self.log=self._log
+        else:
+            self.log=log
 
         self.qsera = Queue()
         self.ev=Event()
@@ -72,30 +79,21 @@ class adcdriver:
         self.data_thread=Thread(target=self.read_stream)
         self.data_thread.start()
         self.trigger_thread=None
+        self.on_trigger=False
+        self.trigger_time=0
+        self.preSampleADC(self.presample)
+
+
+    def _log(self, msg):
+        print(msg)
+ 
+    def preSampleADC(self, n):
+        self.presample=n
+        for i in range(self.presample):
+            adc.getValue(0)
+            adc.getValue(1)
+            adc.getValue(2)
     
-    def read_stream(self):
-
-        while True:
-            
-            while self.wait.is_set():
-                pass
-
-            n=self.info['channels']
-            d=[0]*n
-            
-            for ov in range(self.info['oversample'])
-                for chn in range(n):
-                    d[cnh]+=adc.getValue(n)/adcfac
-
-            for chn in range(n):
-                d[chn]/=adcfac
-            
-            sleep(self.info['sample_delay']/1000.0)
-            self.qsera.put((time(),','.join(data)))
-
-            if self.ev.is_set():
-                break
-
     def clear_que(self):
         s=''
         while not self.qsera.empty():
@@ -109,52 +107,63 @@ class adcdriver:
             s.append(f"{dd[0]} {dd[1]}\n")
         return s
 
-    def preSampleADC(self, n):
-        self.presample=n
-        for i in range(self.presample):
-            adc.getValue(0)
-            adc.getValue(1)
-            adc.getValue(2)
+    def measure(self):
+        nchan=self.info['channels']
+        d=[0]*nchan
+
+        for ov in range(self.info['oversample'])
+            for chn in range(nchan):
+                d[cnh]+=adc.getValue(n)/adcfac
+
+        for chn in range(nchan):
+            d[chn]/=adcfac
+
+        return d
  
+    def read_stream(self):
+
+        while True:
+            
+            while self.wait.is_set():
+                pass
+
+            if self.on_trigger:
+                self.on_trigger=False
+                self.trigger_time=time()
+                self.trigger_thread.join()
+
+            self.qsera.put((time(),self.measure()))  #FIXME
+            sleep(self.info['sample_delay']/1000.0)
+
+            if self.ev.is_set():
+                break
+    
+    def waiting(self):
+        return self.wait.is_set()
+
     def command(self, cmd, wait=False):
-        if cmd.find('presample'):
+        if cmd.find('presample') == 0:
             self.presample=int(cmd.split()[1])
-        elif cmd.find('fmax'):
+            self.preSampleADC()
+        elif cmd.find('fmax') == 0:
             self.info['max_fetch']=int(cmd.split()[1])
-        elif cmd.find('avg'):
+        elif cmd.find('avg') == 0:
             self.info['oversample']=int(cmd.split()[1])
-        elif cmd.find('dt'):
+        elif cmd.find('dt') == 0:
             self.info['sample_delay']=int(cmd.split()[1])
-        elif cmd.find('gain'):
+        elif cmd.find('gain') == 0:
             self.info['gain']=int(cmd.split()[1])
             if adc.is_init:
                 adc.configADC(self.info['gain'][0], self.info['rate'])
+        elif cmd.find('info') == 0:
+            for key in info:
+                log(f'{key}: {info["key"]}')
+
+        elif cmd == 'Q':
+            self.clear_que()
+            self.wait.reset()
         
-    def calibrate(self):
-        self.adc.calibrate()
-
-    def stream(self,stat):
-        if self.presample:
-            self.preSampleADC(self.presample)
-
-        if stat:
-            self.wait.clear()
-        else:
-            self.wait.set()
-
-    def wait_trigger(self):
-        
-        while GPIO.input(self.info['trigger_pin']) == GPIO.HIGH:
-            pass
-        
-        self.wait.reset()
-
-    def trigger(self):
-        self.clear_que()
-        self.stream(False)
-        self.trigger_thread=Thread(target=self.wait_trigger)
-
-    # TODO: not yet compatible with seiplot
+    # TODO: not yet compatible with tracer
 
     def fetch(self):
         '''
@@ -169,6 +178,42 @@ class adcdriver:
 
         return retv
 
+    def stream(self,stat=True):
+        if stat:
+            self.wait.clear()
+        else:
+            self.wait.set()
+
+    def wait_trigger(self):
+        tcancel=False
+
+        while GPIO.input(self.info['trigger_pin']) == GPIO.HIGH:
+            # to cancel: command('Q')
+            if not self.wait.is_set():
+                tcancel=True
+                break
+        
+        if not tcancel:
+            self.trigger_time=time() 
+        
+        self.wait.reset()
+
+    def get_trigger_time(self):
+        tt=self.trigger_time
+        self.trigger_time=0
+        return tt
+
+    def trigger(self):
+        self.clear_que()
+        self.trigger_time=0
+        self.on_trigger=True
+        self.stream(False)
+        self.trigger_thread=Thread(target=self.wait_trigger)
+        self.trigger_thread.start()
+
+    def calibrate(self):
+        self.adc.calibrate()
+
     def updateInfo(self):
         pass
 
@@ -176,4 +221,64 @@ class adcdriver:
         self.clear_que()
         self.ev.set()
         self.data_thread.join()
+
+### MAIN PROGRAM ####
+
+if __name__ == "__main__":
+    
+    datalog=None
+    avg=10
+    dt=1
+    ndata=50
+    nrepeat=0
+
+#    for arg in sys.argv:
+#        if arg.find('comm=') == 0:
+#            comm=arg.replace('comm=','')
+#        if arg.find('speed=') == 0:
+#            speed=int(arg.replace('speed=',''))
+
+    adc=adcdriver()
+    while True:
+        try:
+            cmdln=input('SeismoLog_ADS1256> ')
+            
+            if cmdln.find('quit') == 0:
+                adc.close()
+                break
+            
+            elif cmdln.find('save') == 0:
+                fname=cmdln.replace('file','').strip()
+
+                if fname != '':
+                    datalog=open(fname,'w')
+
+            elif cmdln.find('close') == 0 and datalog:
+                datalog.close()
+                datalog=None
+
+            elif cmdln.find('flush') == 0:
+                print(adc.clear_que())
+            
+            elif cmdln.find('measure') == 0:
+                s=cmdln.split()
+                if len(s) == 1: continue
+                n=int(s[1])
+                for i in range(n):
+                    print(adc.measure())
+
+            else:
+                adc.command(cmdln)
+                sleep(2)
+                ss=adc.clear_que()
+                print(ss.replace('\n','').replace(';','\n'))
+
+                if datalog:
+                    datalog.write(ss)
+                   
+        except KeyboardInterrupt:
+            print('terminating')
+                    
+        except Exception as e:
+            print(e)
 
