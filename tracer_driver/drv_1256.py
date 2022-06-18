@@ -108,15 +108,20 @@ class adcdriver:
         return s
 
     def measure(self):
+        '''
+        returns a list of channel values
+        '''
+
         nchan=self.info['channels']
         d=[0]*nchan
 
         for ov in range(self.info['oversample'])
             for chn in range(nchan):
+                # negative number conversion
                 d[cnh]+=adc.getValue(n)/adcfac
 
         for chn in range(nchan):
-            d[chn]/=adcfac
+            d[chn]=d[chn]/self.info['oversample']
 
         return d
  
