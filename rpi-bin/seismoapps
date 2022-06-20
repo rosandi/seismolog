@@ -1,26 +1,28 @@
 #!/bin/bash
 
 while true; do
-	app=$(/opt/bin/appselect)
+app=$(/opt/bin/appselect)
 
-	if [[ $app == tracer ]]; then
-	  echo loading tracer
-	  cd /opt/tracer
-	  ./tracer.py config=config_linux.json
+  if [[ $app == tracer ]]; then
+    echo loading tracer
+    /opt/tracer/tracer.py config=/opt/tracer/config_linux.json
 
-	elif [[ $app == logger ]]; then
-	  echo loading logger 
-	  /opt/seismoqt/seismoqt.py shutdown=no
+  elif [[ $app == logger ]]; then
+	echo loading logger 
+	/opt/seismoqt/seismoqt.py shutdown=no
 
-	elif [[ $app == poweroff ]]; then
-	  echo power off
-	  sudo poweroff
-        elif [[ $app == wifi ]]; then
-          echo wifi configuration
-          sudo wicd-gtk -n &
-	elif [[ $app == terminal ]]; then
-	  echo open terminal
-	  xterm
-	fi
+  elif [[ $app == poweroff ]]; then
+	echo power off
+	sudo poweroff
 
+  elif [[ $app == wifi ]]; then
+    echo wifi configuration
+    /opt/bin/wifidialog
+
+  elif [[ $app == terminal ]]; then
+    echo open terminal
+    xterm
+  
+  fi
+  
 done
