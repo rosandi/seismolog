@@ -15,7 +15,9 @@ while true; do
 	elif [[ $app == poweroff ]]; then
 	  echo power off
 	  sudo poweroff
-
+        elif [[ $app == wifi ]]; then
+          echo wifi configuration
+          sudo wicd-gtk -n &
 	elif [[ $app == terminal ]]; then
 	  echo open terminal
 	  xterm

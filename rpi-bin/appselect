@@ -5,7 +5,8 @@ from PyQt5.QtWidgets import (
         QWidget, 
         QApplication, 
         QTextBrowser, 
-        QPushButton, 
+        QPushButton,
+        QHBoxLayout,
         QGridLayout
         )
 
@@ -31,6 +32,7 @@ QPushButton#smallPB{
   font-size: 30px; 
   font-weight: bold;
   border-radius: 20px;
+  margin-top:20px;
   padding: 10px 10px 10px 10px;
 }
 
@@ -64,14 +66,17 @@ class selWin(QWidget):
         sqt=QPushButton('Vibration\nLogger')
         trc=QPushButton('Geophone\nTracer')
         sdn=QPushButton('Power off')
+        wif=QPushButton('WiFi Setup')
         trm=QPushButton('Terminal')
 
         sqt.clicked.connect(self.sel_logger)
         trc.clicked.connect(self.sel_tracer)
         sdn.clicked.connect(self.sel_poweroff)
+        wif.clicked.connect(self.sel_wifi)
         trm.clicked.connect(self.sel_terminal)
 
         sdn.setObjectName('smallPB')
+        wif.setObjectName('smallPB')
         trm.setObjectName('smallPB')
 
         glo=QGridLayout()
@@ -79,9 +84,13 @@ class selWin(QWidget):
         glo.addWidget(info,0,0,1,2)
         glo.addWidget(sqt,1,0)
         glo.addWidget(trc,1,1)
-        glo.addWidget(sdn,2,0)
-        glo.addWidget(trm,2,1)
+
+        syslo=QHBoxLayout()
+        syslo.addWidget(sdn)
+        syslo.addWidget(wif)
+        syslo.addWidget(trm)
         
+        glo.addLayout(syslo,2,0,1,2)
 
         self.setLayout(glo)
 
@@ -95,6 +104,10 @@ class selWin(QWidget):
 
     def sel_poweroff(self):
         print('poweroff')
+        self.close()
+
+    def sel_wifi(self):
+        print('wifi')
         self.close()
 
     def sel_terminal(self):
