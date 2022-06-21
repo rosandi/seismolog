@@ -1,0 +1,180 @@
+#!/usr/bin/env python3
+
+import sys
+import os
+from time import sleep
+from threading import Thread
+
+from PyQt5.QtCore import Qt,QTimer
+from PyQt5.QtWidgets import (
+        QWidget, 
+        QApplication, 
+        QTextBrowser,
+        QLineEdit,
+        QLabel,
+        QPushButton,
+        QHBoxLayout,
+        QFormLayout,
+        QGridLayout
+        )
+
+from subprocess import check_output as syscmd
+
+
+sty='''
+QPushButton{
+  background-color: #000080;
+  color: white;
+  border: 1px solid white;
+  outline: none;
+  text-align: center;
+  font-size: 20px; 
+  font-weight: bold;
+  border-radius: 20px;
+  padding: 10px 10px 10px 10px;
+}
+QPushButton::hover {
+  background-color: #3B86F2;
+}
+'''
+
+
+class wifiDialog(QWidget):
+    def __init__(self):
+        super(wifiDialog, self).__init__()
+
+        self.resize(400,200)
+        self.move((1024-400)//2, (600-400)//2)
+        self.setWindowTitle("Activate WiFi")
+        wicred=self.get_wpa_config()
+        self.upd=QTimer()
+        self.upd.timeout.connect(self.update_msg)
+        self.wtrd=Thread(target=self.wifi_service)
+        
+        self.msg=''
+        self.prg=QLabel('<h1>WiFi Setup</h1>')
+        self.prg.setAlignment(Qt.AlignCenter)
+
+        self.ssid=QLineEdit()
+        self.passwd=QLineEdit()
+        self.ssid.setText(wicred[0])
+        self.passwd.setText(wicred[1])
+
+        self.cntBtn=QPushButton('&Connect')
+        self.canBtn=QPushButton('Ca&ncel')
+
+        self.cntBtn.clicked.connect(self.activate_wifi)
+        self.canBtn.clicked.connect(lambda: self.close())
+
+        self.passwd.setEchoMode(QLineEdit.Password)
+        wif=QFormLayout()
+        wif.addRow('SSID', self.ssid)
+        wif.addRow('Password', self.passwd)
+
+        glo=QGridLayout()
+        glo.addWidget(self.prg, 0, 0, 1, 2)
+        glo.addLayout(wif,1,0,1,2)
+        glo.addWidget(self.cntBtn,2,0)
+        glo.addWidget(self.canBtn,2,1)
+        
+        self.setLayout(glo)
+        self.show()
+
+    def get_wpa_config(self):
+        cf='/etc/wpa_supplicant/wpa_supplicant.conf'
+
+        if os.path.exists(cf):
+            with open(cf,'r') as f:
+                cfg=f.readlines()
+            
+            ssid,psk='',''
+            for ll in cfg:
+                ll=ll.strip()
+                if ll.find('ssid') == 0:
+                    ssid=ll
+                if ll.find('psk') == 0:
+                    psk=ll
+                
+                if ssid != '' and psk != '':
+                    break
+
+            ssid=ssid.replace('ssid','').replace(' ','').replace('=','').replace('"','')
+            psk=psk.replace('psk','').replace(' ','').replace('=','').replace('"','')
+        else:
+            ssid=''
+            psk=''
+
+        return (ssid,psk)
+
+    def get_ipadd(self):
+        ipadd=''
+        ifout=syscmd(['ip','add', 'show', 'wlan0']).decode('ascii').split('\n')
+        for ln in ifout:
+            ln=ln.strip()
+            if ln.find('inet ') == 0:
+                ipadd=ln.split()[1]
+        return ipadd
+
+    def wifi_service(self):
+        os.system('sudo mv tmpwpa /etc/wpa_supplicant/wpa_supplicant.conf')
+        print('starting wpa')
+        os.system('sudo service wpa_supplicant restart')
+        print('starting dhcp')
+        os.system('sudo service dhcpcd start &')
+
+        ipadd=''
+        cnt=0
+
+        while ipadd == '':
+
+            cnt+=1
+            sleep(1)
+            ipadd=self.get_ipadd()
+            if ipadd == '':
+                self.msg=f'waiting ip address ({cnt} secs)'
+
+            if cnt>60:
+                break
+
+            print(self.msg)
+
+        self.msg=''
+
+    def update_msg(self):
+        self.prg.setText(self.msg)
+        
+        if self.msg=='':
+            
+            ipadd=self.get_ipadd()
+
+            if ipadd == '':
+                self.prg.setText('WiFi failed')
+            else:
+                self.prg.setText(f'IP address: {ipadd}')
+
+            self.canBtn.setText('Cl&ose')
+            self.cntBtn.setEnabled(False)
+            self.wtrd.join()
+            self.upd.stop()
+
+    def activate_wifi(self):
+        ss='ctrl_interface=DIR=/var/run/wpa_supplicant GROUP=netdev\n'
+        ss+='update_config=1\ncountry=ID\n'
+        ss+='network={\n'
+        ss+=f'  ssid="{self.ssid.text()}"\n'
+        ss+=f'  psk="{self.passwd.text()}"\n'
+        ss+='}\n'
+        
+        with open('tmpwpa','w') as wpa:
+            wpa.write(ss)
+
+        self.upd.start(500)
+
+        self.msg='starting WiFi'
+        self.wtrd.start()
+
+app=QApplication(sys.argv)
+app.setApplicationName('WiFi')
+app.setStyleSheet(sty)
+win=wifiDialog()
+app.exec_()
