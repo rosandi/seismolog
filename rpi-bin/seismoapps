@@ -20,8 +20,8 @@ app=$(/opt/bin/appselect)
     /opt/bin/wifidialog
 
   elif [[ $app == terminal ]]; then
-    echo open terminal
-    xterm
+    echo open terminal/file-manager
+  	spacefm
   
   fi
   

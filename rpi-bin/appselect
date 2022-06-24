@@ -66,7 +66,7 @@ class selWin(QWidget):
         trc=QPushButton('Geophone\nTracer')
         sdn=QPushButton('Power off')
         wif=QPushButton('WiFi Setup')
-        trm=QPushButton('Terminal')
+        trm=QPushButton('File Manager')
 
         sqt.clicked.connect(self.sel_logger)
         trc.clicked.connect(self.sel_tracer)
