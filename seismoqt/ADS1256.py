@@ -78,7 +78,7 @@ class ADS1256:
         GPIO.setup(RST_PIN, GPIO.OUT)
         GPIO.setup(CS_PIN, GPIO.OUT)
         GPIO.setup(DRDY_PIN, GPIO.IN, pull_up_down=GPIO.PUD_UP)
-        spi.max_speed_hz = 20000
+        spi.max_speed_hz = 2000000
         spi.mode = 0b01
         
     def reset(self):
