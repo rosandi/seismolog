@@ -79,7 +79,7 @@ class ADS1256:
         GPIO.setup(RST_PIN, GPIO.OUT)
         GPIO.setup(CS_PIN, GPIO.OUT)
         GPIO.setup(DRDY_PIN, GPIO.IN, pull_up_down=GPIO.PUD_UP)
-        spi.max_speed_hz = 20000
+        spi.max_speed_hz = 2000000
         spi.mode = 0b01
         
     def reset(self):
@@ -141,7 +141,7 @@ class ADS1256:
         # 2. gain setting
         spi.writebytes([CMD['WREG']|REG_E['ADCON'], 0x00, 0x20|gain])
         
-        # 2. datarate setting
+        # 3. datarate setting
         spi.writebytes([CMD['WREG']|REG_E['DRATE'], 0x00, drate])
         delay_ms(1)
         
@@ -183,8 +183,8 @@ class ADS1256:
         self.waitDRDY()
         digital_write(self.cs_pin, GPIO.LOW)
         spi.writebytes([CMD['RDATA']])
-
         buf = spi.readbytes(3)
+
         digital_write(self.cs_pin, GPIO.HIGH)
         read = (buf[0]<<16) & 0xff0000
         read |= (buf[1]<<8) & 0xff00
@@ -199,14 +199,15 @@ class ADS1256:
         # 0 Single-ended input  8 channel
         # 1 Differential input  4 channel
         if(self.mode == 0):
-            if(Channel>=8):
-                return 0
+            print('not applicable')
+#            if(Channel>=8):
+#                return 0
                 
-            self.waitDRDY()
-            self.setChannel(Channel)
-            self.writeCmd(CMD['SYNC'])
-            self.writeCmd(CMD['WAKEUP'])
-            v = self.readADC()
+#            self.waitDRDY()
+#            self.setChannel(Channel)
+#            self.writeCmd(CMD['SYNC'])
+#            self.writeCmd(CMD['WAKEUP'])
+#            v = self.readADC()
         else:
             if(Channel>=4):
                 return 0

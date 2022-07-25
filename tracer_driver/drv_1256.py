@@ -20,16 +20,6 @@ import numpy as np
 from threading import Thread, Event, Timer
 from queue import Queue
 
-def directMeasure(n=1):
-    return readadc(n)
-    
-def calibrate():
-    adc.calibrate()
-
-def deviceClose():
-    deviceReady=False
-    adc.sleep()
-
 adcfac=float(0x7fffff)
 
 class adcdriver:
@@ -42,12 +32,6 @@ class adcdriver:
             self.log=self._log
         else:
             self.log=log
-
-        self.qsera = Queue()
-        self.ev=Event()
-        self.wait=Event()
-        self.ev.clear()
-        self.wait.set()
        
         self.info={
             'ref_volt':1,
@@ -67,17 +51,15 @@ class adcdriver:
             self.command(c)
 
         self.adc=ADS1256()
-        self.adc.initADC(self.info['gain'][0],rate)
+        self.adc.initADC(self.info['gain'][0],self.info['rate'])
         self.adc.setMode(1) # differential input
  
         self.presample=0      # controlled by command
         self.max_fetch=100    # controlled by command
         self.channel_offset=[0,0,0]
-        GPIO.setmode(GPIO.BOARD)
+        # GPIO.setmode(GPIO.BCM) --> set by ADS1256
         GPIO.setup(self.info['trigger_pin'], GPIO.IN, pull_up_down=GPIO.PUD_UP)
 
-        self.data_thread=Thread(target=self.read_stream)
-        self.data_thread.start()
         self.trigger_thread=None
         self.on_trigger=False
         self.trigger_time=0
@@ -90,23 +72,10 @@ class adcdriver:
     def preSampleADC(self, n):
         self.presample=n
         for i in range(self.presample):
-            adc.getValue(0)
-            adc.getValue(1)
-            adc.getValue(2)
+            self.adc.getValue(0)
+            self.adc.getValue(1)
+            self.adc.getValue(2)
     
-    def clear_que(self):
-        s=''
-        while not self.qsera.empty():
-            s+=self.qsera.get()[1]+'\n'
-        return s
-
-    def dump_que(self):
-        s=''
-        while not self.qsera.empty():
-            dd=self.qsera.get()
-            s.append(f"{dd[0]} {dd[1]}\n")
-        return s
-
     def measure(self):
         '''
         returns a list of channel values
@@ -115,36 +84,15 @@ class adcdriver:
         nchan=self.info['channels']
         d=[0]*nchan
 
-        for ov in range(self.info['oversample'])
+        for ov in range(self.info['oversample']):
             for chn in range(nchan):
                 # negative number conversion
-                d[cnh]+=adc.getValue(n)/adcfac
+                d[chn]+=self.adc.getValue(chn)/adcfac
 
         for chn in range(nchan):
             d[chn]=d[chn]/self.info['oversample']
 
         return d
- 
-    def read_stream(self):
-
-        while True:
-            
-            while self.wait.is_set():
-                pass
-
-            if self.on_trigger:
-                self.on_trigger=False
-                self.trigger_time=time()
-                self.trigger_thread.join()
-
-            self.qsera.put((time(),self.measure()))  #FIXME
-            sleep(self.info['sample_delay']/1000.0)
-
-            if self.ev.is_set():
-                break
-    
-    def waiting(self):
-        return self.wait.is_set()
 
     def command(self, cmd, wait=False):
         if cmd.find('presample') == 0:
@@ -164,10 +112,6 @@ class adcdriver:
             for key in info:
                 log(f'{key}: {info["key"]}')
 
-        elif cmd == 'Q':
-            self.clear_que()
-            self.wait.reset()
-        
     # TODO: not yet compatible with tracer
 
     def fetch(self):
@@ -223,9 +167,8 @@ class adcdriver:
         pass
 
     def close(self):
-        self.clear_que()
-        self.ev.set()
-        self.data_thread.join()
+        print('closing device')
+        self.adc.sleep()
 
 ### MAIN PROGRAM ####
 
@@ -248,42 +191,83 @@ if __name__ == "__main__":
         try:
             cmdln=input('SeismoLog_ADS1256> ')
             
-            if cmdln.find('quit') == 0:
+            if cmdln.find('r') == 0: # record
+                s=cmdln.split()
+                dur=float(s[1])
+                
+                if not dur:
+                    continue
+
+                if len(s) == 3:
+                    fout=open(s[2],'w')
+                else:
+                    fout=None
+
+                ts=time()
+                tt=time()
+
+                t=[]
+                v=[]
+
+                while tt-ts < dur:
+                    tt=time()
+                    t.append(tt)
+                    v.append(adc.measure())
+
+                ts=tt-ts
+
+                if fout:
+                    v=np.array(v).transpose()
+
+                    jdat={
+                            'time':t, 
+                            'channel-00':v[0].tolist(),
+                            'channel-01':v[1].tolist(),
+                            'channel-02':v[2].tolist(),
+                            'tsample':ts
+                        }
+
+                    json.dump(jdat,fout)
+                    fout.close()
+
+                else:
+                    for d in zip(t,v):
+                        print(d)
+                    print('acquisition time:', ts)
+
+            elif cmdln.find('m') == 0:
+                s=cmdln.split()
+                if len(s) == 1: 
+                    print('required: number of data')
+                    continue
+
+                n=int(s[1])
+                v=[]
+
+                ts=time()
+                for i in range(n):
+                    v.append(adc.measure())
+                ts=time()-ts
+                
+                for i in range(len(v)):
+                    print('%0.5d:'%i,v[i])
+
+                print('acquisition time:', ts)
+
+            elif cmdln.find('q') == 0:
                 adc.close()
                 break
-            
-            elif cmdln.find('save') == 0:
-                fname=cmdln.replace('file','').strip()
-
-                if fname != '':
-                    datalog=open(fname,'w')
-
-            elif cmdln.find('close') == 0 and datalog:
-                datalog.close()
-                datalog=None
-
-            elif cmdln.find('flush') == 0:
-                print(adc.clear_que())
-            
-            elif cmdln.find('measure') == 0:
-                s=cmdln.split()
-                if len(s) == 1: continue
-                n=int(s[1])
-                for i in range(n):
-                    print(adc.measure())
 
             else:
                 adc.command(cmdln)
                 sleep(2)
-                ss=adc.clear_que()
                 print(ss.replace('\n','').replace(';','\n'))
-
-                if datalog:
-                    datalog.write(ss)
                    
         except KeyboardInterrupt:
             print('terminating')
-                    
+            break
+            
         except Exception as e:
             print(e)
+            raise
 
