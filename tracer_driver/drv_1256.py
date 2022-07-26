@@ -27,6 +27,7 @@ class adcdriver:
     def __init__(self,port='',cmd='',verbose=True,log=None): # compatibility arguments
 
         self.verbose=verbose
+        self.interupt=False
 
         if log == None:
             self.log=self._log
@@ -170,6 +171,47 @@ class adcdriver:
         print('closing device')
         self.adc.sleep()
 
+    def logone(self, dur, fout):
+        self.interupt=False
+        tt=0
+        t=[]
+        v=[]
+        ts=time()
+
+        if fout:
+          fout=open(fname,'w')
+
+        while tt < dur:
+            
+            if self.interupt:
+                return
+
+            t.append(tt)
+            v.append(self.measure())
+            tt=time()-ts
+
+        if fout:
+            v=np.array(v).transpose()
+
+            jdat={
+                'tsample':tt,
+                'tstart':ts,
+                'lon': lon,
+                'lat': lat,
+                'time':t, 
+                'channel-00':v[0].tolist(),
+                'channel-01':v[1].tolist(),
+                'channel-02':v[2].tolist()
+            }
+
+            json.dump(jdat,fout)
+            fout.close()
+
+        else:
+            for d in zip(t,v):
+                print(d)
+            print('acquisition time:', ts)
+
 ### MAIN PROGRAM ####
 
 if __name__ == "__main__":
@@ -179,13 +221,15 @@ if __name__ == "__main__":
     dt=1
     ndata=50
     nrepeat=0
+    lon=-6.905977
+    lat=107.613144
 
-#    for arg in sys.argv:
-#        if arg.find('comm=') == 0:
-#            comm=arg.replace('comm=','')
-#        if arg.find('speed=') == 0:
-#            speed=int(arg.replace('speed=',''))
-
+    for arg in sys.argv:
+        if arg.find('lon=') == 0:
+            lon=float(arg.replace('lon=',''))
+        if arg.find('lat') == 0:
+            lat=float(arg.replace('lat=',''))
+        
     adc=adcdriver()
     while True:
         try:
@@ -195,45 +239,13 @@ if __name__ == "__main__":
                 s=cmdln.split()
                 dur=float(s[1])
                 
-                if not dur:
+                if dur <= 0.0:
                     continue
 
                 if len(s) == 3:
-                    fout=open(s[2],'w')
+                    adc.logone(dur,s[2])
                 else:
-                    fout=None
-
-                ts=time()
-                tt=time()
-
-                t=[]
-                v=[]
-
-                while tt-ts < dur:
-                    tt=time()
-                    t.append(tt)
-                    v.append(adc.measure())
-
-                ts=tt-ts
-
-                if fout:
-                    v=np.array(v).transpose()
-
-                    jdat={
-                            'time':t, 
-                            'channel-00':v[0].tolist(),
-                            'channel-01':v[1].tolist(),
-                            'channel-02':v[2].tolist(),
-                            'tsample':ts
-                        }
-
-                    json.dump(jdat,fout)
-                    fout.close()
-
-                else:
-                    for d in zip(t,v):
-                        print(d)
-                    print('acquisition time:', ts)
+                    adc.logone(dur, False)
 
             elif cmdln.find('m') == 0:
                 s=cmdln.split()
