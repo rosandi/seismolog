@@ -19,6 +19,9 @@ import json
 import numpy as np
 from threading import Thread, Event, Timer
 from queue import Queue
+from trigger import triggerIO
+
+# true value: v_ref*val/adcfac/gain
 
 adcfac=float(0x7fffff)
 
@@ -27,7 +30,6 @@ class adcdriver:
     def __init__(self,port='',cmd='',verbose=True,log=None): # compatibility arguments
 
         self.verbose=verbose
-        self.interupt=False
 
         if log == None:
             self.log=self._log
@@ -44,8 +46,7 @@ class adcdriver:
             'channels':3,
             'volt_scale':1/50.0,
             'active_channels':[0,1,2],
-            'rate': DRATE_E['500SPS'],
-            'trigger_pin': 4,
+            'rate': DRATE_E['500SPS']
         }
         
         for c in cmd:
@@ -58,14 +59,10 @@ class adcdriver:
         self.presample=0      # controlled by command
         self.max_fetch=100    # controlled by command
         self.channel_offset=[0,0,0]
-        # GPIO.setmode(GPIO.BCM) --> set by ADS1256
-        GPIO.setup(self.info['trigger_pin'], GPIO.IN, pull_up_down=GPIO.PUD_UP)
-
-        self.trigger_thread=None
-        self.on_trigger=False
         self.trigger_time=0
         self.preSampleADC(self.presample)
-
+        self.que=None
+        self.trg=triggerIO
 
     def _log(self, msg):
         print(msg)
@@ -83,7 +80,7 @@ class adcdriver:
         '''
 
         nchan=self.info['channels']
-        d=[0]*nchan
+        d=[0.0]*nchan
 
         for ov in range(self.info['oversample']):
             for chn in range(nchan):
@@ -114,52 +111,42 @@ class adcdriver:
                 log(f'{key}: {info["key"]}')
 
     # TODO: not yet compatible with tracer
+    
+    def read_stream(self):
+        ts=time()
+        while not self.trd_intr.is_set():
+            tt=time()-ts
+            d=self.measure()
+            self.que.put((tt,d))
 
     def fetch(self):
-        '''
-        fetch one data from data_queue
-        '''
         retv=[]
         for i in range(self.max_fetch):
-            if self.qsera.empty():
+            if self.que.empty():
                 break
             else:
-                retv.append(self.qsera.get())
+                retv.append(self.que.get())
 
         return retv
 
     def stream(self,stat=True):
+        
         if stat:
-            self.wait.clear()
+            self.que=Queue
+            self.trd_intr.clear()
+            self.trd=Thread(target=self.read_stream)
+            self.trd.start()
         else:
-            self.wait.set()
-
-    def wait_trigger(self):
-        tcancel=False
-
-        while GPIO.input(self.info['trigger_pin']) == GPIO.HIGH:
-            # to cancel: command('Q')
-            if not self.wait.is_set():
-                tcancel=True
-                break
-        
-        if not tcancel:
-            self.trigger_time=time() 
-        
-        self.wait.reset()
-
-    def get_trigger_time(self):
-        tt=self.trigger_time
-        self.trigger_time=0
-        return tt
+            if self.que:
+                self.trd_intr.set()
+                self.trd.join()
+                self.que=None
 
     def trigger(self):
-        self.clear_que()
-        self.trigger_time=0
-        self.on_trigger=True
-        self.stream(False)
-        self.trigger_thread=Thread(target=self.wait_trigger)
-        self.trigger_thread.start()
+        self.trg.wait(self.stream)
+
+    def get_trigger_time(self):
+        return self.trg.get_trigger_time()
 
     def calibrate(self):
         self.adc.calibrate()
@@ -169,48 +156,8 @@ class adcdriver:
 
     def close(self):
         print('closing device')
+        self.stream(False)
         self.adc.sleep()
-
-    def logone(self, dur, fout):
-        self.interupt=False
-        tt=0
-        t=[]
-        v=[]
-        ts=time()
-
-        if fout:
-          fout=open(fname,'w')
-
-        while tt < dur:
-            
-            if self.interupt:
-                return
-
-            t.append(tt)
-            v.append(self.measure())
-            tt=time()-ts
-
-        if fout:
-            v=np.array(v).transpose()
-
-            jdat={
-                'tsample':tt,
-                'tstart':ts,
-                'lon': lon,
-                'lat': lat,
-                'time':t, 
-                'channel-00':v[0].tolist(),
-                'channel-01':v[1].tolist(),
-                'channel-02':v[2].tolist()
-            }
-
-            json.dump(jdat,fout)
-            fout.close()
-
-        else:
-            for d in zip(t,v):
-                print(d)
-            print('acquisition time:', ts)
 
 ### MAIN PROGRAM ####
 
@@ -221,15 +168,13 @@ if __name__ == "__main__":
     dt=1
     ndata=50
     nrepeat=0
-    lon=-6.905977
-    lat=107.613144
 
-    for arg in sys.argv:
-        if arg.find('lon=') == 0:
-            lon=float(arg.replace('lon=',''))
-        if arg.find('lat') == 0:
-            lat=float(arg.replace('lat=',''))
-        
+#    for arg in sys.argv:
+#        if arg.find('comm=') == 0:
+#            comm=arg.replace('comm=','')
+#        if arg.find('speed=') == 0:
+#            speed=int(arg.replace('speed=',''))
+
     adc=adcdriver()
     while True:
         try:
@@ -239,13 +184,45 @@ if __name__ == "__main__":
                 s=cmdln.split()
                 dur=float(s[1])
                 
-                if dur <= 0.0:
+                if not dur:
                     continue
 
                 if len(s) == 3:
-                    adc.logone(dur,s[2])
+                    fout=open(s[2],'w')
                 else:
-                    adc.logone(dur, False)
+                    fout=None
+
+                ts=time()
+                tt=time()
+
+                t=[]
+                v=[]
+
+                while tt-ts < dur:
+                    tt=time()
+                    t.append(tt)
+                    v.append(adc.measure())
+
+                ts=tt-ts
+
+                if fout:
+                    v=np.array(v).transpose()
+
+                    jdat={
+                            'time':t, 
+                            'channel-00':v[0].tolist(),
+                            'channel-01':v[1].tolist(),
+                            'channel-02':v[2].tolist(),
+                            'tsample':ts
+                        }
+
+                    json.dump(jdat,fout)
+                    fout.close()
+
+                else:
+                    for d in zip(t,v):
+                        print(d)
+                    print('acquisition time:', ts)
 
             elif cmdln.find('m') == 0:
                 s=cmdln.split()
